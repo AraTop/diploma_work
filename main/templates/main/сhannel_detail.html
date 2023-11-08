@@ -1,4 +1,37 @@
 {% extends 'main/base.html' %}     
 {% block content %}
+<div class="container">
+   <div class="row">
+       <div class="card mb-4 box-shadow" style="width: 250px; display: block; right: 100px; top: 115px; margin: auto; height: 245px;">
+         <div class="card-body">
+            <p class="card-text">Название: {{object.header}}</p>
+            <p class="card-text">Описание: {{object.content|truncatechars:100}}</p>
+         </div>
+       </div>
+       <div class="card mb-4 box-shadow" style="width: 550px; display: block; right: 20px; top: 115px; margin: auto; height: 245px;">
+         <div class="card-body">
+            <p class="card-text">Название: {{object.header}}</p>
+            <p class="card-text">Описание: {{object.content|truncatechars:100}}</p>
+         </div>
+       </div>
+       {% if subscriptions %}
+         {% for subscription in subscriptions %}
+         <div class="card mb-4 box-shadow" style="width: 250px; display: block; right: 0px; top: 100px; margin: auto; height: 230px;">
+            <h7 class="card-body">Сила подписки: {{ subscription.strength_of_subscription }}</h7>
+            <div class="card-body" style="height: 130px;"> 
+                  <p class="card-text">{{ subscription.name }}</p>
+                  <p class="card-text">{{ subscription.description }}</p>
+                  <p class="card-text">{{ subscription.amount_per_month }} Руб в месяц</p>
+                  <button type="button mm" class="btn btn-lg btn-success" onclick="window.location.href='/channel/Subscription/'">Подписаться</button>
+            </div>
+            {% endfor %}
+       {% else %}
+         <div class="card mb-4 box-shadow" style="width: 200px; display: block; right: 0px; top: -10px; margin: auto; height: 120px;">
+            <h5 class="card-body">У данного канала еще нет подписок</h5>
+         </div>
+       {% endif %}
+         </div>
+   </div>
+</div>
 
 {% endblock %}
