@@ -1,38 +1,33 @@
 {% extends 'main/base.html' %}     
 {% block content %}
 <style>
-.square {
-  width: 250px;
-  height: 250px;
-  margin: 50px;
-  background-color: rgb(255, 193, 193);
-  transition: transform 0.5s, background-color 0.3s;
-  color: #000000;
-}
-.square:hover {
-  transform: scale(1.1);
-  background-color: rgb(255, 161, 161);
-  color: rgb(75, 75, 75);
-}
-.mmm{
-  color: #000000;
-  background-color: rgb(255, 255, 255);
-}
-.mm{
-  color:#7c7c7c
-}
+  .card-box {
+    height: 300px;
+    width: 355px;
+    display: block;
+    background-color: #ffdbdb; 
+    border: 1px solid #ccc; 
+    transition: transform 0.1s ease-in-out; 
+  }
+  .card-box:hover {
+    transform: scale(1.05);
+    border: 1px solid #ff0000; 
+    box-shadow: 0 0 10px rgb(255, 0, 0); 
+  }
 </style>
 
-{% if user.channel %}
-{% for object in object_list  %}
-  <div class="col-md-4">
-    <div class="card mb-4 box-shadow" style="height: 300px; width: 355px; display: block;">
-      <div class="card-body">
-        <img src="{{ object.profile_icon.url }}" style="height: 200px; width: 308px; display: block;">
-        <p class="card-text" style="height: 200px; width: 308px; display: block;">{{ object.name }}</p>
+{% if object_list %}
+{% for object in object_list %}
+  <a href="/channel/{{ object.name }}">
+    <div class="col-md-4">
+      <div class="card mb-4 box-shadow card-box">
+        <div class="card-body">
+          <img src="{{ object.profile_icon.url }}" style="height: 200px; width: 308px; display: block;">
+          <p class="card-text" style="height: 200px; width: 308px; display: block;">{{ object.name }}</p>
+        </div>
       </div>
     </div>
-  </div>
+  </a>
 {% endfor %}
 {% else %}
 <h3 class="mmm">На сайте пока что нет доступных каналов <a class="mm" href="http://127.0.0.1:8000/create/channel">Создайте его</a> и будете первым(ой)</h3>

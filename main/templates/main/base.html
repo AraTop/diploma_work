@@ -48,7 +48,7 @@
                     {% if user.nickname %}
                       <details><summary class="text-muted lowercase-text">{{ user.nickname }}</summary>
                     {% else %}
-                      <details><summary class="text-muted lowercase-text">Укажите nickname в Настройках</summary>
+                      <details><summary class="text-muted lowercase-text">Укажите nickname</summary>
                     {% endif %}
                       <li><a class="text-muted right-align" href="http://127.0.0.1:8000/">Главная страница</a></li>
                       <a class="text-muted" href="http://127.0.0.1:8000/users/settings/">Настройки аккаунта</a>
@@ -63,8 +63,8 @@
                   </li> 
                 {% else %}
                   <li>
-                    <details><summary class="text-muted">Здравствуй, гость</summary>
-                      <a  class="text-muted" href="http://127.0.0.1:8000/users/login/">Войти</a>, <a class="text-muted" href="http://127.0.0.1:8000/users/register">Зарегистрироватся</a>
+                    <details><summary class="text-muted">Здравствуй гость</summary>
+                      <a  class="text-muted" href="http://127.0.0.1:8000/users/login/">Войти</a> <br> <a class="text-muted" href="http://127.0.0.1:8000/users/register">Зарегистрироватся</a>
                     </details>
                   </li>   
                 {% endif %}

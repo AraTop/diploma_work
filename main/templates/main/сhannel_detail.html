@@ -1,37 +1,160 @@
 {% extends 'main/base.html' %}     
 {% block content %}
+<style>
+   .mm{
+      background-color: rgb(229, 255, 0);
+   }
+   .button{
+  color: #ffffff;
+  background: scroll;
+  background-color: rgb(255, 162, 0);
+}
+</style>
+<script>
+   var card = document.getElementById("auto-resize-card");
+
+   // Проверить, если высота контента больше максимальной высоты карточки
+   if (card.scrollHeight > card.clientHeight) {
+       card.style.height = card.scrollHeight + "px"; 
+   }
+   
+
+  document.addEventListener('DOMContentLoaded', function() {
+  const likeButton = document.getElementById('like-button');
+  const dislikeButton = document.getElementById('dislike-button');
+  const likeCount = document.getElementById('like-count');
+  
+  let currentLikes = parseInt(likeCount.textContent); // Получаем текущее количество лайков
+  
+  likeButton.addEventListener('click', function() {
+    currentLikes += 1;
+    likeCount.textContent = currentLikes; // Увеличиваем количество лайков
+  });
+  
+  dislikeButton.addEventListener('click', function() {
+    currentLikes -= 1;
+    likeCount.textContent = currentLikes; // Уменьшаем количество лайков
+  });
+});
+</script>
+{% if user.channel.name == object.name %}
 <div class="container">
    <div class="row">
-       <div class="card mb-4 box-shadow" style="width: 250px; display: block; right: 100px; top: 115px; margin: auto; height: 245px;">
-         <div class="card-body">
-            <p class="card-text">Название: {{object.header}}</p>
-            <p class="card-text">Описание: {{object.content|truncatechars:100}}</p>
+      <div class="card mb-4 box-shadow" style="width: 250px; display: block; right: 100px; top: 165px; margin: auto; height: 345px;">
+         <div class="card mb-4 box-shadow">
+            <div class="card-body" id="auto-resize-card">
+               <img src="{{ object.profile_icon.url }}" style="height: 120px;">
+               <p class="card-text">Название канала: {{ object.name }}</p>
+               <p class="card-text">Подписчики: {{ object.subscriptions.all|length }}</p>
+               <p class="card-text">Описание: {{ object.description }}</p>
+               <button type="button mm" class="btn btn-lg btn-success mb-4" onclick="window.location.href='/create/subscriptions/'">Создать подписку</button>
+               <button type="button mm" class="btn btn-lg btn-success mb-4" onclick="window.location.href='/create/post/'">Создать пост</button>
+               <a href="/update/channel/{{ object.pk }}" class="btn btn-warning mb-4">Редактировать канал</a>
+               <button type="button mm" class="btn btn-lg btn-danger" onclick="window.location.href='/delete/subscriptions/{{ subscription.pk }}'">Удалить канал</button>
+            </div>
+        </div>
+     </div>
+      <div class="card mb-4 box-shadow" style="width: 600px; display: block; right: 60px; top: 220px; height: 400px;">
+         {% if object.post_set.all %}
+         {% for post in object.post_set.all %}
+         <div class="card mb-4 box-shadow">
+            <div class="card-body" id="auto-resize-card">
+               <p class="card-text">{{post.time_the_comment}}</p>
+               <p class="card-text">{{post.name}}</p>
+               <img src="{{ post.photo_post.url }}" style="width: 550px; display: block; right: 60px; top: 220px; height: 270px;">
+               <p class="card-text">Описание: {{ post.description }}</p>
+               <span id="like-count">{{ post.likes }}
+               <button id="like-button" name="likes">Like</button>
+               <br>
+               <br>
+               <button type="button mm" class="btn btn-lg btn-danger" onclick="window.location.href='/delete/post/{{ post.pk }}'">Удалить пост</button>
+               <a href="/update/post/{{ post.pk }}" class="btn btn-warning">Редактировать пост</a>
+            </div>
          </div>
-       </div>
-       <div class="card mb-4 box-shadow" style="width: 550px; display: block; right: 20px; top: 115px; margin: auto; height: 245px;">
-         <div class="card-body">
-            <p class="card-text">Название: {{object.header}}</p>
-            <p class="card-text">Описание: {{object.content|truncatechars:100}}</p>
+         {% endfor %}
+         {% else %}   
+         <div class="card mb-4 box-shadow">
+            <div class="card-body" id="auto-resize-card">
+               <p class="card-text">Постов пока что нет <a href="/create/post/">Добавить</a> </p>
+            </div>
          </div>
-       </div>
-       {% if subscriptions %}
+         {% endif %}
+      </div>
+      {% if subscriptions %}
          {% for subscription in subscriptions %}
-         <div class="card mb-4 box-shadow" style="width: 250px; display: block; right: 0px; top: 100px; margin: auto; height: 230px;">
+         <div class="card mb-4 box-shadow" style="width: 260px; display: block; top: 220px; height: 370px;">
             <h7 class="card-body">Сила подписки: {{ subscription.strength_of_subscription }}</h7>
             <div class="card-body" style="height: 130px;"> 
                   <p class="card-text">{{ subscription.name }}</p>
-                  <p class="card-text">{{ subscription.description }}</p>
+                  <p class="card-text">{{ subscription.description|truncatechars:27  }}</p>
                   <p class="card-text">{{ subscription.amount_per_month }} Руб в месяц</p>
-                  <button type="button mm" class="btn btn-lg btn-success" onclick="window.location.href='/channel/Subscription/'">Подписаться</button>
+                  <button type="button mm" class="btn btn-lg btn-success" onclick="window.location.href='#'">Подписаться</button>
+                  <a href="/update/subscriptions/{{ subscription.pk }}" class="btn btn-warning">Редактировать </a>
+                  <button type="button mm" class="btn btn-lg btn-danger" onclick="window.location.href='/delete/subscriptions/{{ subscription.pk }}'">Удалить подписку</button>
+            </div>
+            {% endfor %}
+      {% else %}
+         <div class="card mb-4 box-shadow" style="width: 250px; display: block; right: 0px; top: 70px; margin: auto; height: 200px;">
+            <h5 class="card-body">У данного канала еще нет подписок</h5>
+            <button type="button mm" class="btn btn-lg btn-success" onclick="window.location.href='/create/subscriptions'" style="margin: 20px;">Добавить подписку</button>
+         </div>
+      {% endif %}
+        </div>
+   </div>
+</div>
+{% else %}
+<div class="container">
+   <div class="row">
+      <div class="card mb-4 box-shadow" style="width: 250px; display: block; right: 100px; top: 215px; margin: auto; height: 345px;">
+         <div class="card mb-4 box-shadow">
+            <div class="card-body" id="auto-resize-card">
+               <img src="{{ object.profile_icon.url }}" style="height: 120px;">
+               <p class="card-text">Название канала: {{ object.name }}</p>
+               <p class="card-text">Подписчики: {{ object.subscriptions.all|length }}</p>
+               <p class="card-text">Описание: {{ object.description }}</p>
+            </div>
+        </div>
+     </div>
+     <div class="card mb-4 box-shadow" style="width: 600px; display: block; right: 60px; top: 270px; height: 400px;">
+      {% if object.post_set.all %}
+      {% for post in object.post_set.all %}
+      <div class="card mb-4 box-shadow">
+         <div class="card-body" id="auto-resize-card">
+            <p class="card-text">{{post.time_the_comment}}</p>
+            <p class="card-text">{{post.name}}</p>
+            <img src="{{ post.photo_post.url }}" style="width: 550px; display: block; right: 60px; top: 220px; height: 270px;">
+            <p class="card-text">Описание: {{ post.description }}</p>
+            <span id="like-count">{{ post.likes }}
+            <button id="like-button" name="likes">Like</button>
+         </div>
+      </div>
+      {% endfor %}
+      {% else %}   
+      <div class="card mb-4 box-shadow">
+         <div class="card-body" id="auto-resize-card">
+            <h5 class="card-text">У данного канала еще нет постов</h5>
+         </div>
+      </div>
+      {% endif %}
+   </div>
+       {% if subscriptions %}
+         {% for subscription in subscriptions %}
+         <div class="card mb-4 box-shadow" style="width: 260px; display: block; top: 170px; margin: auto; height: 300px;">
+            <h7 class="card-body">Сила подписки: {{ subscription.strength_of_subscription }}</h7>
+            <div class="card-body" style="height: 130px;"> 
+                  <p class="card-text">{{ subscription.name }}</p>
+                  <p class="card-text">{{ subscription.description|truncatechars:30  }}</p>
+                  <p class="card-text">{{ subscription.amount_per_month }} Руб в месяц</p>
+                  <button type="button mm" class="btn btn-lg btn-success" onclick="window.location.href='#'">Подписаться</button>
             </div>
             {% endfor %}
        {% else %}
-         <div class="card mb-4 box-shadow" style="width: 200px; display: block; right: 0px; top: -10px; margin: auto; height: 120px;">
+         <div class="card mb-4 box-shadow" style="width: 220px; display: block; right: 0px; top: -30px; margin: auto; height: 100px;">
             <h5 class="card-body">У данного канала еще нет подписок</h5>
          </div>
        {% endif %}
          </div>
    </div>
 </div>
-
+{% endif %}
 {% endblock %}

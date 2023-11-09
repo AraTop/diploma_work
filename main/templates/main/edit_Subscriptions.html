@@ -16,7 +16,7 @@
 
 <form class="form-signin" method="POST" enctype="multipart/form-data">
    {% csrf_token %}
-   <a class="btn btn-lg btn-success mb-1 MMMM" href="http://127.0.0.1:8000/channel/{{ request.user.channel.name }}">Отмена</a>
+   <a class="btn btn-warning" href="http://127.0.0.1:8000/channel/{{ request.user.channel.name }}">Отмена</a>
    <h1 class="h3 mb-3 font-weight-normal">Редактирование подписки, для канала: {{ request.user.channel.name }}
    </h1>
      <div class="form-group">

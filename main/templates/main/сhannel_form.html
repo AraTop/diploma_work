@@ -13,17 +13,17 @@
   color: rgb(255, 255, 255);
   }
  </style>
-
+{% if user.channel.name == object.name %}
 <form class="form-signin" method="POST" enctype="multipart/form-data">
    {% csrf_token %}
    <a class="btn btn-warning" href="http://127.0.0.1:8000/channel/{{ request.user.channel.name }}">Отмена</a>
-   <h1 class="h3 mb-3 font-weight-normal">Cоздание подписки, для канала: {{ request.user.channel.name }}
+   <h1 class="h3 mb-3 font-weight-normal">Редактирование канала: {{ request.user.channel.name }}
    </h1>
      <div class="form-group">
        {{ form.profile_icon.label_tag }}
        <br>
        {% if object.profile_icon %}
-         <img class="card-img-top" src="{{ object.profile_icon.url }}" alt="{{ object.header }}" style="height: 225px; width: 60%; display: block;"/>
+         <img class="card-img-top" src="{{ object.profile_icon.url }}" alt="{{ object.header }}" style="height: 225px; width: 300px; display: block;"/>
        {% endif %}
        {{ form.profile_icon }}
        {% if form.profile_icon.errors %}
@@ -58,30 +58,6 @@
          </ul>
        {% endif %}
      </div>
-     <div class="form-group">
-      {{ form.strength_of_subscription.label_tag }}
-      <br>
-      {{ form.strength_of_subscription }}
-      {% if form.strength_of_subscription.errors %}
-        <ul class="errorlist">
-          {% for error in form.strength_of_subscription.errors %}
-            <li class="red">{{ error }}</li>
-          {% endfor %}
-        </ul>
-      {% endif %}
-    </div>
-    <div class="form-group">
-      {{ form.amount_per_month.label_tag }}
-      <br>
-      {{ form.amount_per_month }}
-      {% if form.amount_per_month.errors %}
-        <ul class="errorlist">
-          {% for error in form.amount_per_month.errors %}
-            <li class="red">{{ error }}</li>
-          {% endfor %}
-        </ul>
-      {% endif %}
-    </div>
     <div class="form-group">
       <br>
     <input type="hidden" name="channel" value="{{ request.user.channel.id }}">
@@ -91,4 +67,7 @@
    </div>
    <button class="btn btn-lg btn-success" type="submit">Сохранить</button>
  </form>
+ {% else %}
+ <h1>Вы не владеете каналом: {{ request.user.channel.name }} поэтому вы не сможете его Редактировать</h1>
+ {% endif %}
 {% endblock %}

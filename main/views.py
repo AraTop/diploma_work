@@ -1,16 +1,18 @@
 from django.utils.decorators import method_decorator
 from django.contrib.auth.decorators import login_required
 from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView
-from main.models import Subscriptions, Сhannel
+from main.models import Post, Subscriptions, Сhannel
 from django.http import HttpResponseRedirect
-from django.urls import reverse, reverse_lazy
+from django.urls import reverse
 
 
+#------------------------------------------------------------------------------------
 class MainListView(ListView):
     model = Сhannel
     template_name = 'main/main_page.html'
 
 
+@method_decorator(login_required, name='dispatch')
 class СhannelDetailView(DetailView):
     model = Сhannel
 
@@ -53,19 +55,51 @@ class СhannelDeleteView(DeleteView):
 @method_decorator(login_required, name='dispatch')
 class СhannelUpdateView(UpdateView):
     model = Сhannel
+    fields = '__all__'
+    success_url = '/'
 
+#------------------------------------------------------------------------------------
 
 @method_decorator(login_required, name='dispatch')
 class SubscriptionsCreateView(CreateView):
     fields = '__all__'
     model = Subscriptions
-    template_name = 'main/create_Subscriptions.html'
-    success_url = '/users/settings/'
+    template_name = 'main/create_subscriptions.html'
+    success_url = '/'
 
 
 @method_decorator(login_required, name='dispatch')
 class SubscriptionsUpdateView(UpdateView):
     fields = '__all__'
     model = Subscriptions
-    template_name = 'main/edit_Subscriptions.html'
-    success_url = '/users/settings/'
+    template_name = 'main/edit_subscriptions.html'
+    success_url = '/'
+
+
+@method_decorator(login_required, name='dispatch')
+class SubscriptionsDeleteView(DeleteView):
+    model = Subscriptions
+    success_url = '/'
+
+#------------------------------------------------------------------
+
+@method_decorator(login_required, name='dispatch')
+class PostCreateView(CreateView):
+    fields = '__all__'
+    model = Post
+    template_name = 'main/create_post.html'
+    success_url = '/'
+
+
+@method_decorator(login_required, name='dispatch')
+class PostUpdateView(UpdateView):
+    fields = '__all__'
+    model = Post
+    template_name = 'main/edit_post.html'
+    success_url = '/'
+
+
+@method_decorator(login_required, name='dispatch')
+class PostDeleteView(DeleteView):
+    model = Post
+    success_url = '/'

@@ -13,9 +13,9 @@ class PostAdmin(admin.ModelAdmin):
 
 @admin.register(Сomments)
 class СommentsAdmin(admin.ModelAdmin):
-    list_display = ('user', 'likes', 'description', 'time_the_comment', 'post')
+    list_display = ('user', 'description', 'time_the_comment', 'post')
 
 
 @admin.register(Subscriptions)
 class SubscriptionsAdmin(admin.ModelAdmin):
-    list_display = ('name', 'description', 'profile_icon', 'strength_of_subscription', 'amount_per_month', 'channel')
+    list_display = ('name', 'description', 'strength_of_subscription', 'amount_per_month', 'channel')
