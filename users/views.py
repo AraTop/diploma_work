@@ -12,6 +12,7 @@ class LoginView(BaseLoginView):
     template_name = 'users/login.html'
 
 
+@method_decorator(login_required, name='dispatch')
 class LogoutView(BaseLogoutView):
     pass
 

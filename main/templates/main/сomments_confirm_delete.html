@@ -1,0 +1,19 @@
+{% extends 'main/base.html' %}     
+{% block content %}
+<div class="col-12">
+   <div class="row">
+      <div class="col-6">
+         <div class="card">
+            <div class="card-body">
+               <form method="post">
+                  {% csrf_token %}
+                  <p>Вы точно уверенны что хотите удалить данный комментарий?
+                  <button type="submit" class="btn btn-danger ">Подтвердить</button>
+                  <a href="/channel/{{ request.user.channel.name }}" class="btn btn-warning">Отмена</a>
+               </form>
+            </div>
+         </div>
+      </div>
+   </div>
+</div>
+{% endblock %}

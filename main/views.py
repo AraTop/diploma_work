@@ -1,8 +1,10 @@
+from django.shortcuts import get_list_or_404, get_object_or_404
 from django.utils.decorators import method_decorator
 from django.contrib.auth.decorators import login_required
+from django.views import View
 from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView
-from main.models import Post, Subscriptions, Сhannel
-from django.http import HttpResponseRedirect
+from main.models import Post, Subscriptions, Сhannel, Сomments
+from django.http import HttpResponseRedirect, JsonResponse
 from django.urls import reverse
 
 
@@ -24,7 +26,10 @@ class СhannelDetailView(DetailView):
         context = super().get_context_data(**kwargs)
         channel = self.get_object()
         subscriptions = channel.subscriptions_set.all()
+        comments = get_list_or_404(Сomments, post__channel=channel) if Сomments.objects.filter(post__channel=channel).exists() else None
+    
         context['subscriptions'] = subscriptions
+        context['comments'] = comments
         return context
 
 @method_decorator(login_required, name='dispatch')
@@ -103,3 +108,65 @@ class PostUpdateView(UpdateView):
 class PostDeleteView(DeleteView):
     model = Post
     success_url = '/'
+
+#-----------------------------------------------------------------------------------
+
+@method_decorator(login_required, name='dispatch')
+class СommentsCreateView(CreateView):
+    fields = '__all__'
+    model = Сomments
+    template_name = 'main/create_comments.html'
+    success_url = '/'
+
+    def form_valid(self, form):
+        post = get_object_or_404(Post, pk=self.kwargs['post_id'])
+        form.instance.post = post
+        return super().form_valid(form)
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        post_id = self.kwargs['post_id']
+        post = get_object_or_404(Post, pk=post_id)
+        context['post_my'] = post
+        return context
+
+
+@method_decorator(login_required, name='dispatch')
+class СommentsDeleteView(DeleteView):
+    model = Сomments
+    success_url = '/'
+
+
+@method_decorator(login_required, name='dispatch')
+class СommentsUpdateView(UpdateView):
+    model = Сomments
+    fields = '__all__'
+    success_url = '/'
+
+#----------------------------------------------------------------------------
+
+class UpdateLikesView(View):
+    def post(self, request, post_id, *args, **kwargs):
+        post = get_object_or_404(Post, pk=post_id)
+
+        # Получаем текущее количество лайков для данного пользователя
+        user_likes_key = f"user_likes_{post_id}"
+        user_likes = request.session.get(user_likes_key, 0)
+
+        # Проверяем, был ли уже лайк от данного пользователя
+        if user_likes == 0:
+            # Увеличиваем количество лайков
+            post.likes += 1
+            post.save()
+
+            # Устанавливаем флаг, что пользователь поставил лайк
+            request.session[user_likes_key] = 1
+        else:
+            # Уменьшаем количество лайков
+            post.likes -= 1
+            post.save()
+
+            # Сбрасываем флаг, что пользователь поставил лайк
+            request.session[user_likes_key] = 0
+
+        return JsonResponse({'likes': post.likes})

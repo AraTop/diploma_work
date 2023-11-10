@@ -58,7 +58,7 @@ class Сomments(models.Model):
    post = models.ForeignKey(Post, on_delete=models.CASCADE, **NULLABLE)
 
    def __str__(self):
-      return f'{self.description} {self.likes}' 
+      return f'{self.user} {self.description}' 
    
    class Meta:
       verbose_name = 'Комментарий'

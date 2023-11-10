@@ -1,0 +1,65 @@
+{% extends 'main/base.html' %}     
+{% block content %}
+<style>
+  .red{
+     background-color: rgb(255, 0, 0);
+     color: #fefefe;
+     height: 25px;
+     width: 530px;
+   }
+  .MMMM:hover {
+  transform: scale(1.1);
+  background-color: rgb(48, 193, 0);
+  color: rgb(255, 255, 255);
+  }
+ </style>
+
+<form class="form-signin" method="POST" enctype="multipart/form-data" >
+   {% csrf_token %}
+   <a class="btn btn-warning" href="http://127.0.0.1:8000/channel/{{ request.user.channel.name }}">Отмена</a>
+   <h1 class="h3 mb-3 font-weight-normal">Редактировать комментарий {{ object.name }}
+   </h1>
+     <div class="form-group">
+       <br>
+       <input type="hidden" name="user" value="{{ request.user.nickname }}">
+       {% if form.user.errors %}
+         <ul class="errorlist">
+           {% for error in form.user.errors %}
+             <li class="red">{{ error }}</li>
+           {% endfor %}
+         </ul>
+       {% endif %}
+     </div>
+     <div class="form-group">
+       {{ form.description.label_tag }}
+       <br>
+       {{ form.description }}
+       {% if form.description.errors %}
+         <ul class="errorlist">
+           {% for error in form.description.errors %}
+             <li class="red">{{ error }}</li>
+           {% endfor %}
+         </ul>
+       {% endif %}
+     </div>
+     <div class="form-group">
+      {{ form.time_the_comment.label_tag }}
+      <br>
+      <input type="datetime-local" name="time_the_comment" class="form-control" id="inputWarning1" value="{{ current_datetime }}">
+      {% if form.time_the_comment.errors %}
+         <ul class="errorlist">
+            {% for error in form.time_the_comment.errors %}
+               <li class="red">{{ error }}</li>
+            {% endfor %}
+         </ul>
+      {% endif %}
+  </div>
+   <div class="form-group">
+      <input type="hidden" name="post" value="{{ object.post.pk }}">
+    </div>
+   <div class="checkbox mb-3">
+     <a href="/">Выйти</a>
+   </div>
+   <button class="btn btn-lg btn-success" type="submit">Сохранить</button>
+ </form>
+{% endblock %}
