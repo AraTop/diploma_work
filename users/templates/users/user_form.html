@@ -48,6 +48,18 @@
           {% endif %}
         </div>
         <div class="form-group">
+          {{ form.phone_number.label_tag }}
+          <br>
+          {{ form.phone_number }}
+          {% if form.phone_number.errors %}
+            <ul class="errorlist">
+              {% for error in form.phone_number.errors %}
+                <li class="red">{{ error }}</li>
+              {% endfor %}
+            </ul>
+          {% endif %}
+        </div>
+        <div class="form-group">
           {{ form.email.label_tag }}
           <br>
           {{ form.email }}
@@ -135,7 +147,7 @@
         <a href="/" class="m">Выйти на главную страницу</a>
         <br>
         <br>
-        <details><summary class="btn btn-lg button">Удалить аккаунт</summary>
+        <details><summary class="btn btn-lg btn-danger">Удалить аккаунт</summary>
           <br>
           <br>
           <li class="">При удаление аккаунта, все данные будут удалены, без возможности возврата</li>

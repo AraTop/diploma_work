@@ -1,0 +1,36 @@
+{% extends 'main/base.html' %}     
+{% block content %}
+<div class="col-md-4">
+   <div class="card mb-4 box-shadow">
+      <h6 class="card">Вы покупаете подписку на канал: {{object.channel.name}}</h6> 
+      <div class="card-body">
+         <p class="card-text">Название подписки: {{object.name}}</p> 
+         <p class="card-text">Cодержимое: {{object.description}}</p>
+         <p class="card-text">Сила подписки: {{object.strength_of_subscription}}</p> 
+         <p class="card-text">Сумма за месяц: {{object.amount_per_month}} Руб.</p>
+         <div class="d-flex justify-content-between align-items-center">
+            <div class="btn-group" method="post">
+               <button type="button" class="btn btn-sm btn-success" onclick="submitForm('/create_payment/{{ object.pk }}/')">Подписаться</button>
+
+<script>
+function submitForm(url) {
+    var form = document.createElement("form");
+    form.method = "post";
+    form.action = url;
+
+    var csrfToken = document.createElement("input");
+    csrfToken.type = "hidden";
+    csrfToken.name = "csrfmiddlewaretoken";
+    csrfToken.value = "{{ csrf_token }}";
+    form.appendChild(csrfToken);
+
+    document.body.appendChild(form);
+    form.submit();
+}
+</script>
+            </div>
+         </div>
+     </div>
+   </div> 
+ </div>
+{% endblock %}

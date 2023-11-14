@@ -1,0 +1,13 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Создание платежа</title>
+</head>
+<body>
+    <h1>Создание платежа</h1>
+    <form method="post" >
+        {% csrf_token %}
+        <input type="submit" value="Оплатить">
+    </form>
+</body>
+</html>

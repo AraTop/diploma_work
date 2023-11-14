@@ -2,11 +2,16 @@ from django.db import models
 
 NULLABLE = {'null': True, 'blank': True}
 
+PAYMENT_METHOD_CHOICES = (
+   ('cash', 'Наличные'),  
+   ('transfer', 'Перевод на счет'),
+)
+
 
 class Сhannel(models.Model):
    name = models.CharField(max_length=20, verbose_name='Название канала', unique=True)
    description = models.TextField(verbose_name='Описание канала', **NULLABLE)
-   profile_icon = models.ImageField(upload_to='channel/', verbose_name='Фотография канала')
+   profile_icon = models.ImageField(upload_to='channel/', verbose_name='Фотография канала', **NULLABLE)
 
    def __str__(self):
       return f'{self.name} {self.description}' 
@@ -35,9 +40,9 @@ class Subscriptions(models.Model):
 
 class Post(models.Model):
    name = models.CharField(max_length=70, verbose_name='Название поста')
-   photo_post = models.ImageField(upload_to='post/', verbose_name='фотография к посту')
+   photo_post = models.ImageField(upload_to='post/', verbose_name='фотография к посту', **NULLABLE)
    description = models.TextField(verbose_name='Описание поста', **NULLABLE)
-   subscription_level = models.ForeignKey(Subscriptions , on_delete=models.SET_NULL, null=True)
+   subscription_level = models.ForeignKey(Subscriptions , on_delete=models.SET_NULL, **NULLABLE)
    likes = models.IntegerField(verbose_name='Кол-во лайков', **NULLABLE , default=0)
    time_the_comment = models.DateTimeField(verbose_name='Дата отправки поста')
    channel = models.ForeignKey(Сhannel, on_delete=models.CASCADE, **NULLABLE)
@@ -64,3 +69,19 @@ class Сomments(models.Model):
       verbose_name = 'Комментарий'
       verbose_name_plural = 'Комментарии'
       ordering = ('user',)
+
+
+class Payment(models.Model):
+   user_nickname = models.CharField(max_length=10, verbose_name='Пользователь')
+   payment_date = models.DateField(verbose_name='Дата оплаты')
+   subscriptions = models.ForeignKey(Subscriptions, on_delete=models.CASCADE, verbose_name='Оплаченная подписка')
+   amount = models.DecimalField(max_digits=10, decimal_places=2, verbose_name='Сумма оплаты')
+   payment_method = models.CharField(max_length=10, choices=PAYMENT_METHOD_CHOICES, verbose_name='Способ оплаты')
+
+   def __str__(self):
+      return f'{self.user_nickname} - {self.payment_date}'
+   
+   class Meta:
+      verbose_name = 'Платеж'
+      verbose_name_plural = 'Платежы'
+      ordering = ('user_nickname',)

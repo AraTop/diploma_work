@@ -9,6 +9,7 @@ urlpatterns = [
    path('create/channel/', views.СhannelCreateView.as_view()),
    path('update/channel/<int:pk>', views.СhannelUpdateView.as_view()),
    path("channel/<str:channel_name>/", views.СhannelDetailView.as_view(), name='detail'),
+   path("subscriptions/<int:pk>/", views.SubscriptionsDetailView.as_view(), name='detail_sub'),
    path("create/subscriptions/", views.SubscriptionsCreateView.as_view(), name='create_sub'),
    path("update/subscriptions/<int:pk>", views.SubscriptionsUpdateView.as_view(), name='update_sub'),
    path("delete/subscriptions/<int:pk>", views.SubscriptionsDeleteView.as_view(), name='delete_sub'),
@@ -19,4 +20,7 @@ urlpatterns = [
    path("delete/comments/<int:pk>", views.СommentsDeleteView.as_view(), name='delete_comm'),
    path("update/comments/<int:pk>", views.СommentsUpdateView.as_view(), name='update_comm'),
    path('update-likes/<int:post_id>/', views.UpdateLikesView.as_view(), name='update_likes'),
+
+   path('create_payment/<int:pk>/', views.PaymentCreateView.as_view(), name='create_payment'),
+   path('retrieve_payment/<str:payment_intent_id>/', views.PaymentRetrieveView.as_view(), name='retrieve')
 ]

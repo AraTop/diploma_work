@@ -2,13 +2,13 @@
 {% block content %}
 <style>
    .mm{
-      background-color: rgb(255, 222, 222);
+      background-color: rgb(242, 146, 146);
       transition: color 0.6s;
    }
 
    .mm:hover{
       color: #000000;
-      background-color: #c7c7c7;
+      background-color: #ff7070;
    }
 
    .mmmmm{
@@ -41,7 +41,9 @@
       <div class="card mb-4 box-shadow" style="width: 250px; display: block; right: 100px; top: 165px; margin: auto; height: 345px;">
          <div class="card mb-4 box-shadow">
             <div class="card-body" id="auto-resize-card">
-               <img src="{{ object.profile_icon.url }}" style="height: 120px;">
+               {% if object.profile_icon %}
+                  <img src="{{ object.profile_icon.url }}" style="height: 120px;">
+               {% endif %}
                <p class="card-text">Название канала: {{ object.name }}</p>
                <p class="card-text">Подписчики: {{ object.subscriptions.all|length }}</p>
                <p class="card-text">Описание: {{ object.description }}</p>
@@ -59,7 +61,9 @@
             <div class="card-body" id="auto-resize-card">
                   <p class="card-text">{{post.time_the_comment}}</p>
                   <p class="card-text">{{post.name}}</p>
-                  <img src="{{ post.photo_post.url }}" style="width: 550px; display: block; right: 60px; top: 220px; height: 270px;">
+                  {% if post.photo_post %}
+                     <img src="{{ post.photo_post.url }}" style="width: 550px; display: block; right: 60px; top: 220px; height: 270px;">
+                  {% endif %}
                   <p class="card-text">{{ post.description }}</p>
                   {% if comments %}
                   <p class="card-text">Комментарии: </p>
@@ -105,7 +109,11 @@
                   <p class="card-text">{{ subscription.name }}</p>
                   <p class="card-text">{{ subscription.description|truncatechars:27  }}</p>
                   <p class="card-text">{{ subscription.amount_per_month }} Руб в месяц</p>
-                  <button type="button mm" class="btn btn-lg btn-success" onclick="window.location.href='#'">Подписаться</button>
+                     {% if request.user.nickname == its_me.user_nickname %}
+                        <h5 class="mm">Вы подписаны</h5>
+                     {% else %}
+                        <button type="button" class="btn btn-lg btn-success" onclick="window.location.href='/subscriptions/{{ subscription.pk }}'">Подписаться</button>
+                     {% endif %}           
                   <a href="/update/subscriptions/{{ subscription.pk }}" class="btn btn-warning">Редактировать </a>
                   <button type="button mm" class="btn btn-lg btn-danger" onclick="window.location.href='/delete/subscriptions/{{ subscription.pk }}'">Удалить подписку</button>    
             </div>
@@ -125,7 +133,9 @@
       <div class="card mb-4 box-shadow" style="width: 250px; display: block; right: 100px; top: 215px; margin: auto; height: 345px;">
          <div class="card mb-4 box-shadow">
             <div class="card-body" id="auto-resize-card">
-               <img src="{{ object.profile_icon.url }}" style="height: 120px;">
+               {% if object.profile_icon %}
+                  <img src="{{ object.profile_icon.url }}" style="height: 120px;">
+               {% endif %}
                <p class="card-text">Название канала: {{ object.name }}</p>
                <p class="card-text">Подписчики: {{ object.subscriptions.all|length }}</p>
                <p class="card-text">{{ object.description }}</p>
@@ -139,7 +149,9 @@
             <div class="card-body" id="auto-resize-card">
                   <p class="card-text">{{post.time_the_comment}}</p>
                   <p class="card-text">{{post.name}}</p>
-                  <img src="{{ post.photo_post.url }}" style="width: 550px; display: block; right: 60px; top: 220px; height: 270px;">
+                  {% if post.photo_post %}
+                     <img src="{{ post.photo_post.url }}" style="width: 550px; display: block; right: 60px; top: 220px; height: 270px;">
+                  {% endif %}
                   <p class="card-text">Описание: {{ post.description }}</p>
                   {% if comments %}
                   <p class="card-text">Комментарии: </p>
@@ -182,7 +194,11 @@
                   <p class="card-text">{{ subscription.name }}</p>
                   <p class="card-text">{{ subscription.description|truncatechars:30  }}</p>
                   <p class="card-text">{{ subscription.amount_per_month }} Руб в месяц</p>
-                  <button type="button mm" class="btn btn-lg btn-success" onclick="window.location.href='#'">Подписаться</button>
+                  {% if request.user.nickname == its_me.user_nickname %}
+                     <h5 class="mm">Вы подписаны</h5>
+                  {% else %}
+                     <button type="button" class="btn btn-lg btn-success" onclick="window.location.href='/subscriptions/{{ subscription.pk }}'">Подписаться</button>
+                  {% endif %}
             </div>
             {% endfor %}
        {% else %}

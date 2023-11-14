@@ -26,9 +26,12 @@
   <body class="text-center">
     <form class="form-signin" method="POST" action="/users/login/">
       {% csrf_token %}
-    
       <h1 class="h3 mb-3 font-weight-normal">Пожалуйста войдите</h1>
-       {{ form.as_p }}
+        {% for one in form %}
+          {{ one.label_tag }} <br>
+          {{ one }}
+          <br>
+        {% endfor %}
       <div class="checkbox mb-3">
         <label>
             Нет аккаунта? <a href="/users/register/">Зарегистрируйтесь</a>

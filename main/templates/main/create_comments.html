@@ -16,7 +16,7 @@
 
 <form class="form-signin" method="POST" enctype="multipart/form-data" >
    {% csrf_token %}
-   <a class="btn btn-warning" href="http://127.0.0.1:8000/channel/{{ request.user.channel.name }}">Отмена</a>
+   <a class="btn btn-warning" href="http://127.0.0.1:8000/channel/{{ post_my.channel.name }}">Отмена</a>
    <h1 class="h3 mb-3 font-weight-normal">Написать комментарий, для поста: {{ post_my.name }}
    </h1>
      <div class="form-group">
@@ -25,7 +25,8 @@
        {% if form.user.errors %}
          <ul class="errorlist">
            {% for error in form.user.errors %}
-             <li class="red">{{ error }}</li>
+             
+             <li class="red">{{ error }} Укажите ваш nickname в настройках</li>
            {% endfor %}
          </ul>
        {% endif %}

@@ -6,14 +6,14 @@ class UserForm(UserCreationForm):
 
     class Meta:
         model = User
-        fields = ('email', 'password1', 'password2')
+        fields = ('phone_number', 'password1', 'password2')
 
 
 class UserProfileForm(UserChangeForm):
 
     class Meta:
         model = User
-        fields = ('email', 'first_name', 'last_name', 'surname' , 'nickname', 'profile_icon', 'balance', 'description')
+        fields = ('email', 'first_name', 'last_name', 'surname' , 'nickname', 'profile_icon', 'balance', 'description', 'phone_number')
 
     def __init__(self, *args, **kwargs):
         super(UserProfileForm, self).__init__(*args, **kwargs)

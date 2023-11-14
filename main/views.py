@@ -1,12 +1,16 @@
-from django.shortcuts import get_list_or_404, get_object_or_404
+import datetime
+from project import settings
+from django.shortcuts import get_list_or_404, get_object_or_404, redirect, render
 from django.utils.decorators import method_decorator
 from django.contrib.auth.decorators import login_required
 from django.views import View
 from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView
-from main.models import Post, Subscriptions, Сhannel, Сomments
-from django.http import HttpResponseRedirect, JsonResponse
+from main.models import Payment, Post, Subscriptions, Сhannel, Сomments
+from django.http import HttpResponseBadRequest, HttpResponseRedirect, HttpResponseServerError, JsonResponse
 from django.urls import reverse
+import stripe
 
+from users.models import User
 
 #------------------------------------------------------------------------------------
 class MainListView(ListView):
@@ -27,7 +31,14 @@ class СhannelDetailView(DetailView):
         channel = self.get_object()
         subscriptions = channel.subscriptions_set.all()
         comments = get_list_or_404(Сomments, post__channel=channel) if Сomments.objects.filter(post__channel=channel).exists() else None
-    
+        payments = Payment.objects.all()
+        user = self.request.user
+
+        for item in payments:
+            if user.nickname == item.user_nickname:
+                context['its_me'] = item
+                break
+
         context['subscriptions'] = subscriptions
         context['comments'] = comments
         return context
@@ -40,7 +51,7 @@ class СhannelCreateView(CreateView):
 
     def dispatch(self, *args, **kwargs):
         if self.request.user.channel:
-            return HttpResponseRedirect(reverse('detail', args=[self.request.user.channel.name]))
+            return HttpResponseRedirect(f'/channel/{self.request.user.channel.name}/')
         return super().dispatch(*args, **kwargs)
 
     def form_valid(self, form):
@@ -49,7 +60,7 @@ class СhannelCreateView(CreateView):
         self.request.user.channel = self.object
         self.request.user.save()
 
-        return HttpResponseRedirect(reverse('detail', args=[self.object.name]))
+        return HttpResponseRedirect(reverse('main:detail', args=[self.object.name]))
     
 
 @method_decorator(login_required, name='dispatch')
@@ -61,7 +72,9 @@ class СhannelDeleteView(DeleteView):
 class СhannelUpdateView(UpdateView):
     model = Сhannel
     fields = '__all__'
-    success_url = '/'
+    
+    def get_success_url(self) -> str:
+        return reverse('main:detail', args=[self.object.name])
 
 #------------------------------------------------------------------------------------
 
@@ -70,21 +83,31 @@ class SubscriptionsCreateView(CreateView):
     fields = '__all__'
     model = Subscriptions
     template_name = 'main/create_subscriptions.html'
-    success_url = '/'
 
+    def get_success_url(self) -> str:
+        return reverse('main:detail', args=[self.object.channel.name])
 
 @method_decorator(login_required, name='dispatch')
 class SubscriptionsUpdateView(UpdateView):
     fields = '__all__'
     model = Subscriptions
     template_name = 'main/edit_subscriptions.html'
-    success_url = '/'
+    
+    def get_success_url(self) -> str:
+        return reverse('main:detail', args=[self.object.channel.name])
+
+
+@method_decorator(login_required, name='dispatch')
+class SubscriptionsDetailView(DetailView):
+    model = Subscriptions
 
 
 @method_decorator(login_required, name='dispatch')
 class SubscriptionsDeleteView(DeleteView):
     model = Subscriptions
-    success_url = '/'
+    
+    def get_success_url(self) -> str:
+        return reverse('main:detail', args=[self.object.channel.name])
 
 #------------------------------------------------------------------
 
@@ -93,7 +116,9 @@ class PostCreateView(CreateView):
     fields = '__all__'
     model = Post
     template_name = 'main/create_post.html'
-    success_url = '/'
+    
+    def get_success_url(self) -> str:
+        return reverse('main:detail', args=[self.object.channel.name])
 
 
 @method_decorator(login_required, name='dispatch')
@@ -101,13 +126,17 @@ class PostUpdateView(UpdateView):
     fields = '__all__'
     model = Post
     template_name = 'main/edit_post.html'
-    success_url = '/'
+    
+    def get_success_url(self) -> str:
+        return reverse('main:detail', args=[self.object.channel.name])
 
 
 @method_decorator(login_required, name='dispatch')
 class PostDeleteView(DeleteView):
     model = Post
-    success_url = '/'
+    
+    def get_success_url(self) -> str:
+        return reverse('main:detail', args=[self.object.channel.name])
 
 #-----------------------------------------------------------------------------------
 
@@ -116,7 +145,9 @@ class СommentsCreateView(CreateView):
     fields = '__all__'
     model = Сomments
     template_name = 'main/create_comments.html'
-    success_url = '/'
+    
+    def get_success_url(self) -> str:
+        return reverse('main:detail', args=[self.object.post.channel.name])
 
     def form_valid(self, form):
         post = get_object_or_404(Post, pk=self.kwargs['post_id'])
@@ -134,14 +165,18 @@ class СommentsCreateView(CreateView):
 @method_decorator(login_required, name='dispatch')
 class СommentsDeleteView(DeleteView):
     model = Сomments
-    success_url = '/'
+    
+    def get_success_url(self) -> str:
+        return reverse('main:detail', args=[self.object.post.channel.name])
 
 
 @method_decorator(login_required, name='dispatch')
 class СommentsUpdateView(UpdateView):
     model = Сomments
     fields = '__all__'
-    success_url = '/'
+    
+    def get_success_url(self) -> str:
+        return reverse('main:detail', args=[self.object.post.channel.name])
 
 #----------------------------------------------------------------------------
 
@@ -170,3 +205,57 @@ class UpdateLikesView(View):
             request.session[user_likes_key] = 0
 
         return JsonResponse({'likes': post.likes})
+    
+
+@method_decorator(login_required, name='dispatch')
+class PaymentRetrieveView(View):
+    template_name = 'main/retrieve_payment.html'
+
+    def get(self, request, payment_intent_id):
+        try:
+            payment_intent = stripe.PaymentIntent.retrieve(payment_intent_id)
+            payment_info = {
+                "id": payment_intent.id,
+                "amount": payment_intent.amount,
+                "currency": payment_intent.currency,
+            }
+            return render(request, self.template_name, {'payment_info': payment_info})
+        except stripe.error.StripeError as e:
+            print(f"Ошибка Stripe: {e}")
+            return HttpResponseServerError("Ошибка Stripe")
+
+
+@method_decorator(login_required, name='dispatch')
+class PaymentCreateView(View):
+    template_name = 'main/create_payment.html'
+
+    def post(self, request, pk):
+        for item in Payment.objects.all():
+            if request.user.nickname == item.user_nickname:
+                return render(request, 'main/error_payment.html', {'item':item})
+        try:
+            subscriptions = Subscriptions.objects.get(pk=pk)
+            print('fsdfsd   ')
+            amount = subscriptions.amount_per_month
+            currency = 'RUB'
+            stripe.api_key = settings.STRIPE_SECRET_KEY
+            payment_intent = stripe.PaymentIntent.create(
+                amount=amount * 100,
+                currency=currency,
+                payment_method_types=['card']
+            )
+
+            payment_intent_id = payment_intent.id
+            payment = Payment(
+                user_nickname=request.user.nickname,
+                payment_date=datetime.date.today(),
+                subscriptions=subscriptions,
+                amount=amount * 100,
+                payment_method='Stripe'
+            )
+            payment.save()
+            return redirect('main:retrieve', payment_intent_id=payment_intent_id)
+        except stripe.error.StripeError as e:
+            print(f"Ошибка Stripe: {e}")
+
+        return render(request, self.template_name)
