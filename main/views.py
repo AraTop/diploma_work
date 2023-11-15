@@ -1,4 +1,5 @@
 import datetime
+from main.permissions import AuthorCommentPermissionsMixin, AuthorPermissionsMixin, AuthorPostPermissionsMixin, AuthorSubPermissionsMixin
 from project import settings
 from django.shortcuts import get_list_or_404, get_object_or_404, redirect, render
 from django.utils.decorators import method_decorator
@@ -6,11 +7,10 @@ from django.contrib.auth.decorators import login_required
 from django.views import View
 from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView
 from main.models import Payment, Post, Subscriptions, Сhannel, Сomments
-from django.http import HttpResponseBadRequest, HttpResponseRedirect, HttpResponseServerError, JsonResponse
+from django.http import HttpResponseRedirect, HttpResponseServerError, JsonResponse
 from django.urls import reverse
 import stripe
 
-from users.models import User
 
 #------------------------------------------------------------------------------------
 class MainListView(ListView):
@@ -18,7 +18,7 @@ class MainListView(ListView):
     template_name = 'main/main_page.html'
 
 
-@method_decorator(login_required, name='dispatch')
+#@method_decorator(login_required, name='dispatch')
 class СhannelDetailView(DetailView):
     model = Сhannel
 
@@ -32,16 +32,25 @@ class СhannelDetailView(DetailView):
         subscriptions = channel.subscriptions_set.all()
         comments = get_list_or_404(Сomments, post__channel=channel) if Сomments.objects.filter(post__channel=channel).exists() else None
         payments = Payment.objects.all()
-        user = self.request.user
-
+        user = self.request.user if self.request.user.is_authenticated else None
+        
+        if user == None:
+            context['subscriptions'] = subscriptions
+            context['comments'] = comments
+            return context
+        
         for item in payments:
             if user.nickname == item.user_nickname:
                 context['its_me'] = item
+                break
+            else:
+                context['its_me'] = None
                 break
 
         context['subscriptions'] = subscriptions
         context['comments'] = comments
         return context
+
 
 @method_decorator(login_required, name='dispatch')
 class СhannelCreateView(CreateView):
@@ -64,12 +73,7 @@ class СhannelCreateView(CreateView):
     
 
 @method_decorator(login_required, name='dispatch')
-class СhannelDeleteView(DeleteView):
-    model = Сhannel
-
-
-@method_decorator(login_required, name='dispatch')
-class СhannelUpdateView(UpdateView):
+class СhannelUpdateView(AuthorPermissionsMixin, UpdateView):
     model = Сhannel
     fields = '__all__'
     
@@ -88,7 +92,7 @@ class SubscriptionsCreateView(CreateView):
         return reverse('main:detail', args=[self.object.channel.name])
 
 @method_decorator(login_required, name='dispatch')
-class SubscriptionsUpdateView(UpdateView):
+class SubscriptionsUpdateView(AuthorSubPermissionsMixin, UpdateView):
     fields = '__all__'
     model = Subscriptions
     template_name = 'main/edit_subscriptions.html'
@@ -103,7 +107,7 @@ class SubscriptionsDetailView(DetailView):
 
 
 @method_decorator(login_required, name='dispatch')
-class SubscriptionsDeleteView(DeleteView):
+class SubscriptionsDeleteView(AuthorSubPermissionsMixin, DeleteView):
     model = Subscriptions
     
     def get_success_url(self) -> str:
@@ -122,7 +126,7 @@ class PostCreateView(CreateView):
 
 
 @method_decorator(login_required, name='dispatch')
-class PostUpdateView(UpdateView):
+class PostUpdateView(AuthorPostPermissionsMixin, UpdateView):
     fields = '__all__'
     model = Post
     template_name = 'main/edit_post.html'
@@ -132,7 +136,7 @@ class PostUpdateView(UpdateView):
 
 
 @method_decorator(login_required, name='dispatch')
-class PostDeleteView(DeleteView):
+class PostDeleteView(AuthorPostPermissionsMixin, DeleteView):
     model = Post
     
     def get_success_url(self) -> str:
@@ -163,7 +167,7 @@ class СommentsCreateView(CreateView):
 
 
 @method_decorator(login_required, name='dispatch')
-class СommentsDeleteView(DeleteView):
+class СommentsDeleteView(AuthorCommentPermissionsMixin, DeleteView):
     model = Сomments
     
     def get_success_url(self) -> str:
@@ -171,7 +175,7 @@ class СommentsDeleteView(DeleteView):
 
 
 @method_decorator(login_required, name='dispatch')
-class СommentsUpdateView(UpdateView):
+class СommentsUpdateView(AuthorCommentPermissionsMixin, UpdateView):
     model = Сomments
     fields = '__all__'
     
@@ -180,31 +184,29 @@ class СommentsUpdateView(UpdateView):
 
 #----------------------------------------------------------------------------
 
+@method_decorator(login_required, name='dispatch')
 class UpdateLikesView(View):
+    template_name = 'main/update_likes.html' 
+
     def post(self, request, post_id, *args, **kwargs):
         post = get_object_or_404(Post, pk=post_id)
 
-        # Получаем текущее количество лайков для данного пользователя
         user_likes_key = f"user_likes_{post_id}"
         user_likes = request.session.get(user_likes_key, 0)
 
-        # Проверяем, был ли уже лайк от данного пользователя
         if user_likes == 0:
-            # Увеличиваем количество лайков
             post.likes += 1
             post.save()
 
-            # Устанавливаем флаг, что пользователь поставил лайк
             request.session[user_likes_key] = 1
         else:
-            # Уменьшаем количество лайков
             post.likes -= 1
             post.save()
 
-            # Сбрасываем флаг, что пользователь поставил лайк
             request.session[user_likes_key] = 0
 
-        return JsonResponse({'likes': post.likes})
+        redirect_url = reverse('main:detail', args=[post.channel.name])
+        return render(request, self.template_name, {'redirect_url': redirect_url})
     
 
 @method_decorator(login_required, name='dispatch')

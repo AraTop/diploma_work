@@ -5,7 +5,7 @@ from .apps import MainConfig
 app_name = MainConfig.name
 
 urlpatterns = [
-   path('', views.MainListView.as_view()),
+   path('', views.MainListView.as_view(), name='home'),
    path('create/channel/', views.СhannelCreateView.as_view()),
    path('update/channel/<int:pk>', views.СhannelUpdateView.as_view()),
    path("channel/<str:channel_name>/", views.СhannelDetailView.as_view(), name='detail'),

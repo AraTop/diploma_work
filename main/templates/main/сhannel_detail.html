@@ -34,6 +34,20 @@
        card.style.height = card.scrollHeight + "px"; 
    }
 
+   function submitForm(url) {
+    var form = document.createElement("form");
+    form.method = "post";
+    form.action = url;
+
+    var csrfToken = document.createElement("input");
+    csrfToken.type = "hidden";
+    csrfToken.name = "csrfmiddlewaretoken";
+    csrfToken.value = "{{ csrf_token }}";
+    form.appendChild(csrfToken);
+
+    document.body.appendChild(form);
+    form.submit();
+}
 </script>
 {% if user.channel.name == object.name %}
 <div class="container">
@@ -48,9 +62,8 @@
                <p class="card-text">Подписчики: {{ object.subscriptions.all|length }}</p>
                <p class="card-text">Описание: {{ object.description }}</p>
                <button type="button mm" class="btn btn-lg btn-success mb-4" onclick="window.location.href='/create/subscriptions/'">Создать подписку</button>
-               <button type="button mm" class="btn btn-lg btn-success mb-4" onclick="window.location.href='/create/post/'">Создать пост</button>
+               <button type="button mm" class="btn btn-lg btn-danger mb-4" onclick="window.location.href='/create/post/'">Создать пост</button>
                <a href="/update/channel/{{ object.pk }}" class="btn btn-warning mb-4">Редактировать канал</a>
-               <button type="button mm" class="btn btn-lg btn-danger" onclick="window.location.href='/delete/subscriptions/{{ subscription.pk }}'">Удалить канал</button>
             </div>
         </div>
      </div>
@@ -84,8 +97,9 @@
                   {% endif %}
                   <a href="/create/comments/{{ post.pk }}">Написать комментарий</a>
                   <br>
+
                   <span>{{ post.likes }}</span>
-                  <button class="mmmmm" onclick="window.location.href='/update-likes/{{ post.pk }}'">Like</button>
+                  <button type="button" class="btn btn-sm btn-success" onclick="submitForm('/update-likes/{{ post.pk }}/')">Like</button>
                   <br>
                   <br>
                   <button type="button mm" class="btn btn-lg btn-danger" onclick="window.location.href='/delete/post/{{ post.pk }}'">Удалить пост</button>
@@ -172,9 +186,8 @@
                   {% endif %}
                   <a href="/create/comments/{{ post.pk }}">Написать комментарий</a>
                   <br>
-                  <span id="like-count">{{ post.likes }}
-                     <button id="like-button" name="likes">Like</button>
-                  </span>
+                  <span>{{ post.likes }}</span>
+                  <button type="button" class="btn btn-sm btn-success" onclick="submitForm('/update-likes/{{ post.pk }}/')">Like</button>
             </div>
          </div>
       {% endfor %}
@@ -194,7 +207,7 @@
                   <p class="card-text">{{ subscription.name }}</p>
                   <p class="card-text">{{ subscription.description|truncatechars:30  }}</p>
                   <p class="card-text">{{ subscription.amount_per_month }} Руб в месяц</p>
-                  {% if request.user.nickname == its_me.user_nickname %}
+                  {% if user.is_authenticated and request.user.nickname == its_me.user_nickname %}
                      <h5 class="mm">Вы подписаны</h5>
                   {% else %}
                      <button type="button" class="btn btn-lg btn-success" onclick="window.location.href='/subscriptions/{{ subscription.pk }}'">Подписаться</button>

@@ -9,7 +9,7 @@
                   {% csrf_token %}
                   <p>Вы точно уверенны что хотите удалить данный комментарий?
                   <button type="submit" class="btn btn-danger ">Подтвердить</button>
-                  <a href="/channel/{{ request.user.channel.name }}" class="btn btn-warning">Отмена</a>
+                  <a href="/channel/{{ object.post.channel.name }}" class="btn btn-warning">Отмена</a>
                </form>
             </div>
          </div>

@@ -13,11 +13,10 @@
   color: rgb(255, 255, 255);
   }
  </style>
-{% if user.channel.name == object.name %}
 <form class="form-signin" method="POST" enctype="multipart/form-data">
    {% csrf_token %}
-   <a class="btn btn-warning" href="http://127.0.0.1:8000/channel/{{ request.user.channel.name }}">Отмена</a>
-   <h1 class="h3 mb-3 font-weight-normal">Редактирование канала: {{ request.user.channel.name }}
+   <a class="btn btn-warning" href="http://127.0.0.1:8000/channel/{{ object.name }}">Отмена</a>
+   <h1 class="h3 mb-3 font-weight-normal">Редактирование канала: {{ object.name }}
    </h1>
      <div class="form-group">
        {{ form.profile_icon.label_tag }}
@@ -67,7 +66,4 @@
    </div>
    <button class="btn btn-lg btn-success" type="submit">Сохранить</button>
  </form>
- {% else %}
- <h1>Вы не владеете каналом: {{ request.user.channel.name }} поэтому вы не сможете его Редактировать</h1>
- {% endif %}
 {% endblock %}
