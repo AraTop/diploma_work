@@ -31,22 +31,27 @@ class СhannelDetailView(DetailView):
         channel = self.get_object()
         subscriptions = channel.subscriptions_set.all()
         comments = get_list_or_404(Сomments, post__channel=channel) if Сomments.objects.filter(post__channel=channel).exists() else None
-        payments = Payment.objects.all()
         user = self.request.user if self.request.user.is_authenticated else None
-        
+        free_posts = Post.objects.filter(subscription_level__isnull=True, channel=channel)
+
         if user == None:
+            context['free_posts'] = free_posts
+            
             context['subscriptions'] = subscriptions
             context['comments'] = comments
             return context
         
-        for item in payments:
-            if user.nickname == item.user_nickname:
-                context['its_me'] = item
-                break
-            else:
-                context['its_me'] = None
-                break
-
+        payments = Payment.objects.filter(
+            user_nickname=self.request.user.nickname,
+            subscriptions__channel=channel
+            )
+        
+        if user.channel:
+            if user.channel.name == channel.name:
+                context['all_posts'] = Post.objects.filter(channel=channel)
+        
+        context['payment'] = payments
+        context['free_posts'] = free_posts
         context['subscriptions'] = subscriptions
         context['comments'] = comments
         return context
@@ -232,12 +237,78 @@ class PaymentCreateView(View):
     template_name = 'main/create_payment.html'
 
     def post(self, request, pk):
-        for item in Payment.objects.all():
-            if request.user.nickname == item.user_nickname:
-                return render(request, 'main/error_payment.html', {'item':item})
-        try:
-            subscriptions = Subscriptions.objects.get(pk=pk)
-            print('fsdfsd   ')
+        existing_payment = Payment.objects.filter(user_nickname=request.user.nickname).all()
+        subscrip = Subscriptions.objects.get(pk=pk)
+        if subscrip.channel.name == request.user.channel.name:
+            return render(request, 'main/error_payment_mychannel.html')
+
+        if existing_payment:
+
+            for item in existing_payment:
+                print("existing_payment", existing_payment)
+                print(item.subscriptions.channel.name)
+                if item.subscriptions.channel.name == subscrip.channel.name:
+                    subscriptions_user = item.subscriptions
+                
+                    if subscrip == subscriptions_user:
+                        print('купить нельзя что уже купил')
+                        return render(request, 'main/error_payment.html', {'subscription':subscrip})
+                    
+                    item.delete()
+
+                    print(f'existing_payment удали его:{item}')
+
+                    subscriptions = Subscriptions.objects.get(pk=pk)
+                    amount = subscriptions.amount_per_month
+                    currency = 'RUB'
+                    stripe.api_key = settings.STRIPE_SECRET_KEY
+                    payment_intent = stripe.PaymentIntent.create(
+                        amount=amount * 100,
+                        currency=currency,
+                        payment_method_types=['card'])
+                        
+                    payment_intent_id = payment_intent.id
+                    payment = Payment(
+                        user_nickname=request.user.nickname,
+                        payment_date=datetime.date.today(),
+                        subscriptions=subscriptions,
+                        amount=amount * 100,
+                        payment_method='Stripe')
+                        
+                    payment.save()
+                    return redirect('main:retrieve', payment_intent_id=payment_intent_id)
+                        
+                else: 
+                    # Если у пользователя нет подписки на этот канал,
+                    # создаем новую подписку
+                    print(subscrip.channel,'subscrip.channel',subscrip)
+                    print(item.subscriptions.channel,'item.subscriptions.channel', item.subscriptions)
+
+                    print('z nen sdfsdfsdfdfsdff')
+                    subscriptions = get_object_or_404(Subscriptions, pk=pk)
+                    amount = subscriptions.amount_per_month
+                    currency = 'RUB'
+                    stripe.api_key = settings.STRIPE_SECRET_KEY
+                    payment_intent = stripe.PaymentIntent.create(
+                        amount=amount * 100,
+                        currency=currency,
+                        payment_method_types=['card']
+                        )
+
+                    payment_intent_id = payment_intent.id
+                    payment = Payment(
+                        user_nickname=request.user.nickname,
+                        payment_date=datetime.date.today(),
+                        subscriptions=subscriptions,
+                        amount=amount * 100,
+                        payment_method='Stripe'
+                    )
+                    payment.save()
+
+                    return redirect('main:retrieve', payment_intent_id=payment_intent_id)
+        else:
+            print('на один раз')
+            subscriptions = get_object_or_404(Subscriptions, pk=pk)
             amount = subscriptions.amount_per_month
             currency = 'RUB'
             stripe.api_key = settings.STRIPE_SECRET_KEY
@@ -245,7 +316,7 @@ class PaymentCreateView(View):
                 amount=amount * 100,
                 currency=currency,
                 payment_method_types=['card']
-            )
+                )
 
             payment_intent_id = payment_intent.id
             payment = Payment(
@@ -256,8 +327,5 @@ class PaymentCreateView(View):
                 payment_method='Stripe'
             )
             payment.save()
-            return redirect('main:retrieve', payment_intent_id=payment_intent_id)
-        except stripe.error.StripeError as e:
-            print(f"Ошибка Stripe: {e}")
 
-        return render(request, self.template_name)
+            return redirect('main:retrieve', payment_intent_id=payment_intent_id)

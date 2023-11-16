@@ -68,8 +68,8 @@
         </div>
      </div>
       <div class="card mb-4 box-shadow" style="width: 600px; display: block; right: 60px; top: 220px; height: 400px;">
-      {% if object.post_set.all %}
-      {% for post in object.post_set.all %}
+      {% if all_posts %}
+      {% for post in all_posts.all %}
          <div class="card mb-4 box-shadow">
             <div class="card-body" id="auto-resize-card">
                   <p class="card-text">{{post.time_the_comment}}</p>
@@ -110,7 +110,7 @@
          {% else %}   
          <div class="card mb-4 box-shadow">
             <div class="card-body" id="auto-resize-card">
-               <p class="card-text">Постов пока что нет <a href="/create/post/">Добавить</a> </p>
+               <p class="card-text">Постов пока, что нет <a href="/create/post/">Добавить</a> </p>
             </div>
          </div>
          {% endif %}
@@ -123,11 +123,6 @@
                   <p class="card-text">{{ subscription.name }}</p>
                   <p class="card-text">{{ subscription.description|truncatechars:27  }}</p>
                   <p class="card-text">{{ subscription.amount_per_month }} Руб в месяц</p>
-                     {% if request.user.nickname == its_me.user_nickname %}
-                        <h5 class="mm">Вы подписаны</h5>
-                     {% else %}
-                        <button type="button" class="btn btn-lg btn-success" onclick="window.location.href='/subscriptions/{{ subscription.pk }}'">Подписаться</button>
-                     {% endif %}           
                   <a href="/update/subscriptions/{{ subscription.pk }}" class="btn btn-warning">Редактировать </a>
                   <button type="button mm" class="btn btn-lg btn-danger" onclick="window.location.href='/delete/subscriptions/{{ subscription.pk }}'">Удалить подписку</button>    
             </div>
@@ -157,8 +152,8 @@
         </div>
      </div>
      <div class="card mb-4 box-shadow" style="width: 600px; display: block; right: 60px; top: 270px; height: 400px;">
-      {% if object.post_set.all %}
-      {% for post in object.post_set.all %}
+      {% if free_posts %}
+      {% for post in free_posts.all %}
          <div class="card mb-4 box-shadow">
             <div class="card-body" id="auto-resize-card">
                   <p class="card-text">{{post.time_the_comment}}</p>
@@ -194,7 +189,7 @@
          {% else %}   
          <div class="card mb-4 box-shadow">
             <div class="card-body" id="auto-resize-card">
-               <p class="card-text">У данного канала еще нет постов</p>
+               <p class="card-text">Бесплатных постов пока, что нет</p>
             </div>
          </div>
          {% endif %}
@@ -207,11 +202,23 @@
                   <p class="card-text">{{ subscription.name }}</p>
                   <p class="card-text">{{ subscription.description|truncatechars:30  }}</p>
                   <p class="card-text">{{ subscription.amount_per_month }} Руб в месяц</p>
-                  {% if user.is_authenticated and request.user.nickname == its_me.user_nickname %}
-                     <h5 class="mm">Вы подписаны</h5>
+                  {% if payment %}
+                     
                   {% else %}
                      <button type="button" class="btn btn-lg btn-success" onclick="window.location.href='/subscriptions/{{ subscription.pk }}'">Подписаться</button>
                   {% endif %}
+
+                     {% for item in payment %}
+                     {% if item.subscriptions.pk == subscription.pk %}
+                        {% if user.is_authenticated and request.user.nickname == item.user_nickname %}
+                           <h5 class="mm">Вы подписаны</h5>
+                        {% else %}
+                           <button type="button" class="btn btn-lg btn-success" onclick="window.location.href='/subscriptions/{{ subscription.pk }}'">Подписаться</button>
+                        {% endif %}
+                     {% else %}
+                        <button type="button" class="btn btn-lg btn-success" onclick="window.location.href='/subscriptions/{{ subscription.pk }}'">Подписаться</button>
+                     {% endif %}
+                  {% endfor %}  
             </div>
             {% endfor %}
        {% else %}

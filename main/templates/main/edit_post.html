@@ -63,10 +63,10 @@
       <br>
       <select name="{{ form.subscription_level.name }}" class="form-control">
         {% if not user.channel.subscriptions_set.all %}
-          <option value="{{ subscription.pk }}">Пост бесплатный (доступен без подписки)</option>
+          <option value="">Пост бесплатный (доступен без подписки)</option>
         {% endif %}
+        <option value="">Пост бесплатный (доступен без подписки)</option>
         {% for subscription in user.channel.subscriptions_set.all %}
-          <option value="{{ subscription.pk }}">Пост бесплатный (доступен без подписки)</option>
           <option value="{{ subscription.pk }}">{{ subscription.name }} (если купить данную подписку или выше ее )</option>
         {% endfor %}
       </select>
