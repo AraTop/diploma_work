@@ -1,5 +1,7 @@
 from django.db import models
 
+from main.validators import min_sum, validate_non_negative
+
 NULLABLE = {'null': True, 'blank': True}
 
 PAYMENT_METHOD_CHOICES = (
@@ -25,8 +27,8 @@ class Сhannel(models.Model):
 class Subscriptions(models.Model):
    name = models.CharField(max_length=15, verbose_name='Название Подписки')
    description = models.CharField(max_length=55, verbose_name='Описание Подписки')
-   strength_of_subscription = models.IntegerField(verbose_name='Чем выше число, тем сильнее подписка')
-   amount_per_month = models.IntegerField(verbose_name='Сумма за месяц')
+   strength_of_subscription = models.IntegerField(verbose_name='Чем выше число, тем сильнее подписка', validators=[validate_non_negative])
+   amount_per_month = models.IntegerField(verbose_name='Сумма за месяц', validators=[min_sum])
    channel = models.ForeignKey(Сhannel, on_delete=models.CASCADE, **NULLABLE)
    
    def __str__(self):

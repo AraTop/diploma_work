@@ -67,7 +67,7 @@
         {% endif %}
         <option value="">Пост бесплатный (доступен без подписки)</option>
         {% for subscription in user.channel.subscriptions_set.all %}
-          <option value="{{ subscription.pk }}">{{ subscription.name }} (если купить данную подписку или выше ее )</option>
+          <option value="{{ subscription.pk }}">{{ subscription.name }} (если купить данную подписку или выше ее. Сила подписки: {{ subscription.strength_of_subscription }} )</option>
         {% endfor %}
       </select>
       {% if form.subscription_level.errors %}
@@ -81,8 +81,7 @@
     <div class="form-group">
       {{ form.time_the_comment.label_tag }}
       <br>
-      <label class="control-label" for="inputWarning1">время</label>
-      <input type="datetime-local" name="time_the_comment" class="form-control" id="inputWarning1" value="{{ form.time_the_comment.value|default:"" }}">
+      <input type="datetime" name="time_the_comment" class="form-control" id="inputWarning1" value="{{ date }} {{ time }}" readonly>
       {% if form.time_the_comment.errors %}
         <ul class="errorlist">
           {% for error in form.time_the_comment.errors %}

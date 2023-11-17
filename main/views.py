@@ -1,4 +1,5 @@
 import datetime
+from typing import Any
 from main.permissions import AuthorCommentPermissionsMixin, AuthorPermissionsMixin, AuthorPostPermissionsMixin, AuthorSubPermissionsMixin
 from project import settings
 from django.shortcuts import get_list_or_404, get_object_or_404, redirect, render
@@ -18,7 +19,6 @@ class MainListView(ListView):
     template_name = 'main/main_page.html'
 
 
-#@method_decorator(login_required, name='dispatch')
 class СhannelDetailView(DetailView):
     model = Сhannel
 
@@ -35,22 +35,42 @@ class СhannelDetailView(DetailView):
         free_posts = Post.objects.filter(subscription_level__isnull=True, channel=channel)
 
         if user == None:
+            paid_posts = Post.objects.filter(subscription_level__isnull=False, channel=channel)
             context['free_posts'] = free_posts
-            
+            context['paid_posts'] = paid_posts
             context['subscriptions'] = subscriptions
             context['comments'] = comments
             return context
         
-        payments = Payment.objects.filter(
+        payment = Payment.objects.filter(
             user_nickname=self.request.user.nickname,
             subscriptions__channel=channel
-            )
+            ).first()
         
         if user.channel:
             if user.channel.name == channel.name:
                 context['all_posts'] = Post.objects.filter(channel=channel)
         
-        context['payment'] = payments
+        if payment:
+            user_sub = payment.subscriptions
+            payments_user = []
+            payments_user_didnt_check = []
+
+            for item in Post.objects.filter(subscription_level__isnull=False, channel=channel):
+                if user_sub.strength_of_subscription >= item.subscription_level.strength_of_subscription:
+                    payments_user.append(item)
+
+                else:
+                    payments_user_didnt_check.append(item)
+
+            context['payments_user'] = payments_user
+            context['payments_user_not_check'] = payments_user_didnt_check
+
+        else:
+            paid_posts = Post.objects.filter(subscription_level__isnull=False, channel=channel)
+            context['paid_posts'] = paid_posts
+ 
+        context['payment'] = Payment.objects.filter(user_nickname=self.request.user.nickname, subscriptions__channel=channel)
         context['free_posts'] = free_posts
         context['subscriptions'] = subscriptions
         context['comments'] = comments
@@ -119,13 +139,22 @@ class SubscriptionsDeleteView(AuthorSubPermissionsMixin, DeleteView):
         return reverse('main:detail', args=[self.object.channel.name])
 
 #------------------------------------------------------------------
-
+from django.utils import timezone
 @method_decorator(login_required, name='dispatch')
 class PostCreateView(CreateView):
     fields = '__all__'
     model = Post
     template_name = 'main/create_post.html'
     
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        moscow_time = timezone.now() + datetime.timedelta(hours=3)
+        current_date = timezone.now().date()
+        formatted_date = current_date.strftime('%Y-%m-%d')
+        context['time'] = moscow_time.time()
+        context['date'] = formatted_date
+        return context
+
     def get_success_url(self) -> str:
         return reverse('main:detail', args=[self.object.channel.name])
 
@@ -136,6 +165,15 @@ class PostUpdateView(AuthorPostPermissionsMixin, UpdateView):
     model = Post
     template_name = 'main/edit_post.html'
     
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        moscow_time = timezone.now() + datetime.timedelta(hours=3)
+        current_date = timezone.now().date()
+        formatted_date = current_date.strftime('%Y-%m-%d')
+        context['time'] = moscow_time.time()
+        context['date'] = formatted_date
+        return context
+
     def get_success_url(self) -> str:
         return reverse('main:detail', args=[self.object.channel.name])
 
@@ -168,6 +206,11 @@ class СommentsCreateView(CreateView):
         post_id = self.kwargs['post_id']
         post = get_object_or_404(Post, pk=post_id)
         context['post_my'] = post
+        moscow_time = timezone.now() + datetime.timedelta(hours=3)
+        current_date = timezone.now().date()
+        formatted_date = current_date.strftime('%Y-%m-%d')
+        context['time'] = moscow_time.time()
+        context['date'] = formatted_date
         return context
 
 
@@ -183,6 +226,15 @@ class СommentsDeleteView(AuthorCommentPermissionsMixin, DeleteView):
 class СommentsUpdateView(AuthorCommentPermissionsMixin, UpdateView):
     model = Сomments
     fields = '__all__'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        moscow_time = timezone.now() + datetime.timedelta(hours=3)
+        current_date = timezone.now().date()
+        formatted_date = current_date.strftime('%Y-%m-%d')
+        context['time'] = moscow_time.time()
+        context['date'] = formatted_date
+        return context
     
     def get_success_url(self) -> str:
         return reverse('main:detail', args=[self.object.post.channel.name])
@@ -245,18 +297,15 @@ class PaymentCreateView(View):
         if existing_payment:
 
             for item in existing_payment:
-                print("existing_payment", existing_payment)
                 print(item.subscriptions.channel.name)
                 if item.subscriptions.channel.name == subscrip.channel.name:
                     subscriptions_user = item.subscriptions
                 
                     if subscrip == subscriptions_user:
-                        print('купить нельзя что уже купил')
                         return render(request, 'main/error_payment.html', {'subscription':subscrip})
                     
                     item.delete()
 
-                    print(f'existing_payment удали его:{item}')
 
                     subscriptions = Subscriptions.objects.get(pk=pk)
                     amount = subscriptions.amount_per_month
@@ -281,10 +330,6 @@ class PaymentCreateView(View):
                 else: 
                     # Если у пользователя нет подписки на этот канал,
                     # создаем новую подписку
-                    print(subscrip.channel,'subscrip.channel',subscrip)
-                    print(item.subscriptions.channel,'item.subscriptions.channel', item.subscriptions)
-
-                    print('z nen sdfsdfsdfdfsdff')
                     subscriptions = get_object_or_404(Subscriptions, pk=pk)
                     amount = subscriptions.amount_per_month
                     currency = 'RUB'
@@ -307,7 +352,6 @@ class PaymentCreateView(View):
 
                     return redirect('main:retrieve', payment_intent_id=payment_intent_id)
         else:
-            print('на один раз')
             subscriptions = get_object_or_404(Subscriptions, pk=pk)
             amount = subscriptions.amount_per_month
             currency = 'RUB'

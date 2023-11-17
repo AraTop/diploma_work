@@ -1,14 +1,29 @@
 {% extends 'main/base.html' %}     
 {% block content %}
 <style>
+   .color_noting{
+      background-color: rgb(214, 230, 253);
+   }
+   .color_proofile{
+      background-color: rgb(230, 253, 135);
+   }
+   .com_color{
+      background-color: rgb(151, 255, 206);
+   }
+   .sub_color{
+      background-color: rgb(216, 229, 255);
+   }
+   .posts_color{
+      background-color: rgb(185, 255, 230);
+   }
    .mm{
-      background-color: rgb(242, 146, 146);
+      background-color: rgb(255, 198, 252);
       transition: color 0.6s;
    }
 
    .mm:hover{
       color: #000000;
-      background-color: #ff7070;
+      background-color: #d796ff;
    }
 
    .mmmmm{
@@ -52,8 +67,8 @@
 {% if user.channel.name == object.name %}
 <div class="container">
    <div class="row">
-      <div class="card mb-4 box-shadow" style="width: 250px; display: block; right: 100px; top: 165px; margin: auto; height: 345px;">
-         <div class="card mb-4 box-shadow">
+      <div class="card mb-4 box-shadow color_proofile" style="width: 250px; display: block; right: 100px; top: 165px; margin: auto; height: 345px;">
+         <div class="card mb-4 box-shadow color_proofile">
             <div class="card-body" id="auto-resize-card">
                {% if object.profile_icon %}
                   <img src="{{ object.profile_icon.url }}" style="height: 120px;">
@@ -70,7 +85,7 @@
       <div class="card mb-4 box-shadow" style="width: 600px; display: block; right: 60px; top: 220px; height: 400px;">
       {% if all_posts %}
       {% for post in all_posts.all %}
-         <div class="card mb-4 box-shadow">
+         <div class="card mb-4 box-shadow posts_color">
             <div class="card-body" id="auto-resize-card">
                   <p class="card-text">{{post.time_the_comment}}</p>
                   <p class="card-text">{{post.name}}</p>
@@ -82,7 +97,7 @@
                   <p class="card-text">Комментарии: </p>
                   {% for comment in comments %}
                      {% if comment.post == post %}
-                        <div class="card mb-4">
+                        <div class="card mb-4 com_color">
                               <p> {{ comment.time_the_comment }}<br><br>{{ comment.user }}: {{ comment.description }}</p>
                               {% if user.is_authenticated and comment.user == user.nickname %}
                                  <button class="mb-1 mm" onclick="window.location.href='/delete/comments/{{ comment.pk }}'">Удалить комментарий</button>
@@ -108,8 +123,8 @@
          </div>
       {% endfor %}
          {% else %}   
-         <div class="card mb-4 box-shadow">
-            <div class="card-body" id="auto-resize-card">
+         <div class="card mb-4 box-shadow color_noting">
+            <div class="card-body color_noting" id="auto-resize-card">
                <p class="card-text">Постов пока, что нет <a href="/create/post/">Добавить</a> </p>
             </div>
          </div>
@@ -117,7 +132,7 @@
       </div>
       {% if subscriptions %}
          {% for subscription in subscriptions %}
-         <div class="card mb-4 box-shadow" style="width: 260px; display: block; top: 220px; height: 370px;">
+         <div class="card mb-4 box-shadow sub_color" style="width: 260px; display: block; top: 220px; height: 370px;">
                <h7 class="card-body">Сила подписки: {{ subscription.strength_of_subscription }}</h7>
                <div class="card-body" style="height: 130px;"> 
                   <p class="card-text">{{ subscription.name }}</p>
@@ -128,7 +143,7 @@
             </div>
             {% endfor %}
       {% else %}
-         <div class="card mb-4 box-shadow" style="width: 250px; display: block; right: 0px; top: 70px; margin: auto; height: 200px;">
+         <div class="card mb-4 box-shadow color_noting" style="width: 250px; display: block; right: 0px; top: 70px; margin: auto; height: 200px;">
             <h5 class="card-body">У данного канала еще нет подписок</h5>
             <button type="button mm" class="btn btn-lg btn-success" onclick="window.location.href='/create/subscriptions'" style="margin: 20px;">Добавить подписку</button>
          </div>
@@ -139,8 +154,8 @@
 {% else %}
 <div class="container">
    <div class="row">
-      <div class="card mb-4 box-shadow" style="width: 250px; display: block; right: 100px; top: 215px; margin: auto; height: 345px;">
-         <div class="card mb-4 box-shadow">
+      <div class="card mb-4 box-shadow color_proofile" style="width: 250px; display: block; right: 100px; top: 215px; margin: auto; height: 345px;">
+         <div class="card mb-4 box-shadow color_proofile">
             <div class="card-body" id="auto-resize-card">
                {% if object.profile_icon %}
                   <img src="{{ object.profile_icon.url }}" style="height: 120px;">
@@ -153,50 +168,113 @@
      </div>
      <div class="card mb-4 box-shadow" style="width: 600px; display: block; right: 60px; top: 270px; height: 400px;">
       {% if free_posts %}
-      {% for post in free_posts.all %}
-         <div class="card mb-4 box-shadow">
-            <div class="card-body" id="auto-resize-card">
-                  <p class="card-text">{{post.time_the_comment}}</p>
-                  <p class="card-text">{{post.name}}</p>
-                  {% if post.photo_post %}
-                     <img src="{{ post.photo_post.url }}" style="width: 550px; display: block; right: 60px; top: 220px; height: 270px;">
-                  {% endif %}
-                  <p class="card-text">Описание: {{ post.description }}</p>
-                  {% if comments %}
-                  <p class="card-text">Комментарии: </p>
-                  {% for comment in comments %}
-                     {% if comment.post == post %}
-                        <div class="card mb-4">
-                              <p> {{ comment.time_the_comment }}<br><br>{{ comment.user }}: {{ comment.description }}</p>
-                              {% if user.is_authenticated and comment.user == user.nickname %}
-                                 <button class="mb-1 mm" onclick="window.location.href='/delete/comments/{{ comment.pk }}'">Удалить комментарий</button>
-                                 <button class="mm" onclick="window.location.href='/update/comments/{{ comment.pk }}'">Редактировать комментарий</button>
-                              {% endif %}
-                        </div>
+         {% for post in free_posts.all %}
+            <div class="card mb-4 box-shadow posts_color">
+               <div class="card-body" id="auto-resize-card">
+                     <p class="card-text">{{post.time_the_comment}}</p>
+                     <p class="card-text">{{post.name}}</p>
+                     {% if post.photo_post %}
+                        <img src="{{ post.photo_post.url }}" style="width: 550px; display: block; right: 60px; top: 220px; height: 270px;">
                      {% endif %}
-                     {% endfor %}
+                     <p class="card-text">Описание: {{ post.description }}</p>
+                     {% if comments %}
+                     <p class="card-text">Комментарии: </p>
+                     {% for comment in comments %}
+                        {% if comment.post == post %}
+                           <div class="card mb-4 com_color">
+                                 <p> {{ comment.time_the_comment }}<br><br>{{ comment.user }}: {{ comment.description }}</p>
+                                 {% if user.is_authenticated and comment.user == user.nickname %}
+                                    <button class="mb-1 mm" onclick="window.location.href='/delete/comments/{{ comment.pk }}'">Удалить комментарий</button>
+                                    <button class="mm" onclick="window.location.href='/update/comments/{{ comment.pk }}'">Редактировать комментарий</button>
+                                 {% endif %}
+                           </div>
+                        {% endif %}
+                        {% endfor %}
+                        <br>
+                     {% else %}
+                        <p class="card">Комментарии еще не написаны, будьте первыми!</p>
+                     {% endif %}
+                     <a href="/create/comments/{{ post.pk }}">Написать комментарий</a>
                      <br>
-                  {% else %}
-                     <p class="card">Комментарии еще не написаны, будьте первыми!</p>
-                  {% endif %}
-                  <a href="/create/comments/{{ post.pk }}">Написать комментарий</a>
-                  <br>
-                  <span>{{ post.likes }}</span>
-                  <button type="button" class="btn btn-sm btn-success" onclick="submitForm('/update-likes/{{ post.pk }}/')">Like</button>
+                     <span>{{ post.likes }}</span>
+                     <button type="button" class="btn btn-sm btn-success" onclick="submitForm('/update-likes/{{ post.pk }}/')">Like</button>
+               </div>
             </div>
-         </div>
-      {% endfor %}
-         {% else %}   
-         <div class="card mb-4 box-shadow">
+         {% endfor %}
+      {% else %}   
+         <div class="card mb-4 box-shadow color_noting">
             <div class="card-body" id="auto-resize-card">
                <p class="card-text">Бесплатных постов пока, что нет</p>
             </div>
          </div>
-         {% endif %}
+      {% endif %}
+         {% for post in paid_posts.all %}
+            <div class="card mb-4 box-shadow posts_color">
+               <h4 class="card-body">Для просмотра поста, нужна подписка.<br>Название подписки: {{ post.subscription_level.name }}<br>Сила подписки: {{ post.subscription_level.strength_of_subscription }} или выше</h4>
+               <div class="card-body" id="auto-resize-card" style="filter: blur(7px);">
+                     <p class="card-text">{{post.time_the_comment}}</p>
+                     <p class="card-text">{{post.name}}</p>
+                     {% if post.photo_post %}
+                        <img src="{{ post.photo_post.url }}" style=" width: 550px; display: block; right: 60px; top: 220px; height: 270px;">
+                     {% endif %}
+                     <p class="card-text" >Описание: {{ post.description }}</p>
+                     <br>
+                     <span>{{ post.likes }}</span>
+               </div>
+            </div>
+         {% endfor %}
+         {% for post in payments_user %}
+            <div class="card mb-4 box-shadow posts_color">
+               <div class="card-body" id="auto-resize-card">
+                     <p class="card-text">{{post.time_the_comment}}</p>
+                     <p class="card-text">{{post.name}}</p>
+                     {% if post.photo_post %}
+                        <img src="{{ post.photo_post.url }}" style=" width: 550px; display: block; right: 60px; top: 220px; height: 270px;">
+                     {% endif %}
+                     <p class="card-text" >Описание: {{ post.description }}</p>
+                     {% if comments %}
+                     <p class="card-text">Комментарии: </p>
+                     {% for comment in comments %}
+                        {% if comment.post == post %}
+                           <div class="card mb-4 com_color">
+                                 <p> {{ comment.time_the_comment }}<br><br>{{ comment.user }}: {{ comment.description }}</p>
+                                 {% if user.is_authenticated and comment.user == user.nickname %}
+                                    <button class="mb-1 mm" onclick="window.location.href='/delete/comments/{{ comment.pk }}'">Удалить комментарий</button>
+                                    <button class="mm" onclick="window.location.href='/update/comments/{{ comment.pk }}'">Редактировать комментарий</button>
+                                 {% endif %}
+                           </div>
+                        {% endif %}
+                        {% endfor %}
+                        <br>
+                     {% else %}
+                        <p class="card">Комментарии еще не написаны, будьте первыми!</p>
+                     {% endif %}
+                     <a href="/create/comments/{{ post.pk }}">Написать комментарий</a>
+                     <br>
+                     <span>{{ post.likes }}</span>
+                     <button type="button" class="btn btn-sm btn-success" onclick="submitForm('/update-likes/{{ post.pk }}/')">Like</button>
+               </div>
+            </div>
+         {% endfor %}
+         {% for post in payments_user_not_check %}
+         <div class="card mb-4 box-shadow posts_color">
+            <h4 class="card-body">Для просмотра поста, нужна подписка.<br>Название подписки: {{ post.subscription_level.name }}<br>Сила подписки: {{ post.subscription_level.strength_of_subscription }} или выше</h4>
+            <div class="card-body" id="auto-resize-card" style="filter: blur(7px);">
+                  <p class="card-text">{{post.time_the_comment}}</p>
+                  <p class="card-text">{{post.name}}</p>
+                  {% if post.photo_post %}
+                     <img src="{{ post.photo_post.url }}" style=" width: 550px; display: block; right: 60px; top: 220px; height: 270px;">
+                  {% endif %}
+                  <p class="card-text" >Описание: {{ post.description }}</p>
+                  <br>
+                  <span>{{ post.likes }}</span>
+            </div>
+         </div>
+         {% endfor %}
       </div>
        {% if subscriptions %}
          {% for subscription in subscriptions %}
-         <div class="card mb-4 box-shadow" style="width: 260px; display: block; top: 170px; margin: auto; height: 300px;">
+         <div class="card mb-4 box-shadow sub_color" style="width: 260px; display: block; top: 170px; margin: auto; height: 300px;">
             <h7 class="card-body">Сила подписки: {{ subscription.strength_of_subscription }}</h7>
             <div class="card-body" style="height: 130px;"> 
                   <p class="card-text">{{ subscription.name }}</p>
@@ -223,7 +301,7 @@
             {% endfor %}
        {% else %}
          <div class="card mb-4 box-shadow" style="width: 220px; display: block; right: 0px; top: -30px; margin: auto; height: 100px;">
-            <h5 class="card-body">У данного канала еще нет подписок</h5>
+            <h5 class="card-body color_noting">У данного канала еще нет подписок</h5>
          </div>
        {% endif %}
          </div>

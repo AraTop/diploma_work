@@ -45,7 +45,7 @@
      <div class="form-group">
       {{ form.time_the_comment.label_tag }}
       <br>
-      <input type="datetime-local" name="time_the_comment" class="form-control" id="inputWarning1" value="{{ current_datetime }}">
+      <input type="datetime" name="time_the_comment" class="form-control" id="inputWarning1" value="{{ date }} {{ time }}" readonly>
       {% if form.time_the_comment.errors %}
          <ul class="errorlist">
             {% for error in form.time_the_comment.errors %}
