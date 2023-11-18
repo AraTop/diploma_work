@@ -1,0 +1,21 @@
+{% extends 'main/base.html' %}     
+{% block content %}
+{% if sub_user %}
+   {% for object in sub_user %}
+      <div class="col-md-4" style="height: 250px; width: 100px; display: block;">
+         <div class="card mb-4 box-shadow">
+            <div class="card-body">
+               <p class="card-text">Название: {{object.name|truncatechars:10}}</p>
+               <p class="card-text">Описание: {{object.description|truncatechars:10}}</p>
+               <div class="d-flex justify-content-between align-items-center">
+                  <a href="/channel/{{ object.channel.name }}">Перейти к каналу</a>
+               </div>
+            </div>
+         </div>
+      </div>
+   
+   {% endfor %}
+{% else %}
+   <h3>У вас пока что нет подписок. Подпишитесь чтоб тут появились подписки <br> <a href="/users/settings/">Войти в настройки</a></h3>
+{% endif %}
+{% endblock %}

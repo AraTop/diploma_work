@@ -74,7 +74,7 @@
                   <img src="{{ object.profile_icon.url }}" style="height: 120px;">
                {% endif %}
                <p class="card-text">Название канала: {{ object.name }}</p>
-               <p class="card-text">Подписчики: {{ object.subscriptions.all|length }}</p>
+               <p class="card-text">Подписчиков: {{ payments_channel.count }}</p>
                <p class="card-text">Описание: {{ object.description }}</p>
                <button type="button mm" class="btn btn-lg btn-success mb-4" onclick="window.location.href='/create/subscriptions/'">Создать подписку</button>
                <button type="button mm" class="btn btn-lg btn-danger mb-4" onclick="window.location.href='/create/post/'">Создать пост</button>
@@ -161,7 +161,7 @@
                   <img src="{{ object.profile_icon.url }}" style="height: 120px;">
                {% endif %}
                <p class="card-text">Название канала: {{ object.name }}</p>
-               <p class="card-text">Подписчики: {{ object.subscriptions.all|length }}</p>
+               <p class="card-text">Подписчиков: {{ payments_channel.count }}</p>
                <p class="card-text">{{ object.description }}</p>
             </div>
         </div>

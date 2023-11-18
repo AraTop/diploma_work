@@ -13,7 +13,7 @@ class User(AbstractUser):
     last_name = models.CharField(max_length=150, verbose_name='Фамилия', **NULLABLE)
     surname = models.CharField(max_length=200, verbose_name='Отчествоо', **NULLABLE)
     nickname = models.CharField(max_length=10, verbose_name='Имя, которое видно всем', unique=True)
-    balance = models.IntegerField(verbose_name='Баланс', **NULLABLE)
+    balance = models.FloatField(verbose_name='Баланс', **NULLABLE, default=0)
     profile_icon = models.ImageField(upload_to='users/', verbose_name='Фотография профиля', **NULLABLE)
     description = models.TextField(verbose_name='Описание профиля', default='test', **NULLABLE)
     channel = models.ForeignKey(Сhannel, on_delete=models.SET_NULL, **NULLABLE)

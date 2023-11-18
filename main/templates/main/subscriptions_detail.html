@@ -8,6 +8,8 @@
          <p class="card-text">Cодержимое: {{object.description}}</p>
          <p class="card-text">Сила подписки: {{object.strength_of_subscription}}</p> 
          <p class="card-text">Сумма за месяц: {{object.amount_per_month}} Руб.</p>
+         <li>Если у вас была подписка на этом канале она будет онулирована</li>
+         <br>
          <div class="d-flex justify-content-between align-items-center">
             <div class="btn-group" method="post">
                <button type="button" class="btn btn-sm btn-success" onclick="submitForm('/create_payment/{{ object.pk }}/')">Подписаться</button>

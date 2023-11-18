@@ -23,7 +23,7 @@ class Сhannel(models.Model):
       verbose_name_plural = 'Каналы'
       ordering = ('name',)
 
-   
+
 class Subscriptions(models.Model):
    name = models.CharField(max_length=15, verbose_name='Название Подписки')
    description = models.CharField(max_length=55, verbose_name='Описание Подписки')

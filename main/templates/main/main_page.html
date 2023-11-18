@@ -2,8 +2,8 @@
 {% block content %}
 <style>
   .card-box {
-    height: 300px;
-    width: 355px;
+    height: 280px;
+    width: 330px;
     display: block;
     background-color: #ffdbdb; 
     border: 1px solid #ccc; 
@@ -22,8 +22,10 @@
     <div class="col-md-4">
       <div class="card mb-4 box-shadow card-box">
         <div class="card-body">
-          <img src="{{ object.profile_icon.url }}" style="height: 200px; width: 308px; display: block;">
-          <p class="card-text" style="height: 200px; width: 308px; display: block;">{{ object.name }}</p>
+          {% if object.profile_icon %}
+            <img src="{{ object.profile_icon.url }}" style="height: 210px; width: 280px; display: block;">
+          {% endif %}
+          <p>{{ object.name }}</p>
         </div>
       </div>
     </div>

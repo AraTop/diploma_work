@@ -16,30 +16,30 @@
     <link href="{% static 'css/album.css' %}" rel="stylesheet">
   </head>
 <style>
-    .header {
-  position: sticky;
-  top: 0;
-  width: 100%;
-  background-color: #ffffff; 
+.menu_color{
+  background-color: rgb(255, 248, 240);
+}
+.header {
+  background-color: rgb(255, 248, 240); 
   color: #000000; 
   padding: 10px 0;
   z-index: 1000; 
 }
-    .black-line {
-    border-top: 1px solid black; 
-    margin: 0;
+.black-line {
+  border-top: 1px solid black; 
+  margin: 0;
   }
-    .lowercase-text {
-    text-transform: lowercase;
-        }
+.lowercase-text {
+  text-transform: lowercase;
+}
 </style>
   <body>
-    <header>
-      <div class="header card col-md-48" style="width: 1757px; position: absolute; top:-35px; right: -10.9px;"> 
+    <header style="position: fixed; width: 100%; background-color: #f8f9fa; z-index: 1000;">
+      <div class="header col-md-48 card" style="position: fixed; width: 1757px; position: absolute; top:-27px; right: -10.9px;"> 
         <div class="container col-md-12 ">
-          <div class="row ">
+          <div class="row menu_color">
             <div class="col-sm-8 col-md-7 py-4">
-              <h5>iNtROY</h5>
+              <a href="/"><h5>iNtROY</h5></a>
             </div>
             <div class="col-sm-4 offset-md-1">
               <ul class="list-unstyled" style="width: 700px; display: block; position: absolute; right: -535px; top:22px; margin: auto;">

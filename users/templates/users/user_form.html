@@ -1,6 +1,20 @@
 {% extends 'main/base.html' %}     
 {% block content %}
 <style>
+.polu_menu{
+  background-color: beige;
+}
+.menu{
+  background-color: rgb(255, 229, 114);
+  color: #000;
+}
+.menu:hover{
+  color: #000000;
+  background-color: rgb(255, 174, 0);
+}
+.profile_color{
+  background-color: rgb(255, 255, 199);
+}
 .red{
   background-color: rgb(255, 104, 104);
   color: #fefefe;
@@ -28,7 +42,7 @@
   color: #0d0b0b;
 }
 </style>
-   <form class="form-signin" method="POST" enctype="multipart/form-data">
+   <form class="form-signin profile_color card-body" method="POST" enctype="multipart/form-data">
       {% csrf_token %}
       <h1 class="h3 mb-3 font-weight-normal">Профиль
       </h1>
@@ -157,17 +171,9 @@
       </div>
       <button class="btn btn-lg btn-success" type="submit">Сохранить</button>
     </form>
-    <div class="col-md-24 " style="width: 350px; display: block; position: absolute; right: 310px; top: 130px;">
-      <div class="card mb-6 box-shadow"> 
-        <div class="card-body">
-          <a class="mmmm" href="/users/settings/">Настройки Профиля</a>
-          <br>
-          <a class="mmmm" href="/users/settings/black_list">Черный список</a>
-          <br>
-          <a class="mmmm" href="/users/settings/subscriptions">Подписки</a>
-          <br>
-          <a class="mmmm" href="#">#</a>
-        </div>
+    <div class="col-md-24" style="width: 350px; display: block; position: absolute; right: 310px; top: 130px;">
+      <div class="card mb-6 box-shadow card-body polu_menu"> 
+        <a class="menu card-body" href="/subscriptions/">Подписки</a>
       </div> 
     </div>
    

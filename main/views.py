@@ -12,6 +12,8 @@ from django.http import HttpResponseRedirect, HttpResponseServerError, JsonRespo
 from django.urls import reverse
 import stripe
 
+from users.models import User
+
 
 #------------------------------------------------------------------------------------
 class MainListView(ListView):
@@ -33,6 +35,7 @@ class СhannelDetailView(DetailView):
         comments = get_list_or_404(Сomments, post__channel=channel) if Сomments.objects.filter(post__channel=channel).exists() else None
         user = self.request.user if self.request.user.is_authenticated else None
         free_posts = Post.objects.filter(subscription_level__isnull=True, channel=channel)
+        payments_channel = Payment.objects.filter(subscriptions__channel=channel).all()
 
         if user == None:
             paid_posts = Post.objects.filter(subscription_level__isnull=False, channel=channel)
@@ -69,7 +72,8 @@ class СhannelDetailView(DetailView):
         else:
             paid_posts = Post.objects.filter(subscription_level__isnull=False, channel=channel)
             context['paid_posts'] = paid_posts
- 
+
+        context['payments_channel'] = payments_channel
         context['payment'] = Payment.objects.filter(user_nickname=self.request.user.nickname, subscriptions__channel=channel)
         context['free_posts'] = free_posts
         context['subscriptions'] = subscriptions
@@ -106,6 +110,21 @@ class СhannelUpdateView(AuthorPermissionsMixin, UpdateView):
         return reverse('main:detail', args=[self.object.name])
 
 #------------------------------------------------------------------------------------
+class SubscriptionsListView(ListView):
+    model = Subscriptions
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+
+        sub_user = []
+        payments = Payment.objects.filter(user_nickname=self.request.user.nickname).all()
+        for item in payments:
+            sub = item.subscriptions
+            sub_user.append(sub)
+
+        context['sub_user'] = sub_user
+        return context
+
 
 @method_decorator(login_required, name='dispatch')
 class SubscriptionsCreateView(CreateView):
@@ -291,24 +310,43 @@ class PaymentCreateView(View):
     def post(self, request, pk):
         existing_payment = Payment.objects.filter(user_nickname=request.user.nickname).all()
         subscrip = Subscriptions.objects.get(pk=pk)
-        if subscrip.channel.name == request.user.channel.name:
-            return render(request, 'main/error_payment_mychannel.html')
+        
+        if request.user.nickname:
+            pass
+        else:
+            return render(request, 'main/add_nickname.html')
+
+        if request.user.channel:
+            if subscrip.channel.name == request.user.channel.name:
+                return render(request, 'main/error_payment_mychannel.html')
 
         if existing_payment:
 
             for item in existing_payment:
-                print(item.subscriptions.channel.name)
                 if item.subscriptions.channel.name == subscrip.channel.name:
                     subscriptions_user = item.subscriptions
-                
+
                     if subscrip == subscriptions_user:
                         return render(request, 'main/error_payment.html', {'subscription':subscrip})
-                    
-                    item.delete()
 
+                    item.delete()
 
                     subscriptions = Subscriptions.objects.get(pk=pk)
                     amount = subscriptions.amount_per_month
+
+                    five_percent = amount * 0.05
+                    amount_after_deduction = amount - five_percent
+
+                    admin_user = User.objects.filter(email='lololohka057@gmail.com').first() # нужно вписать почту хозяина сайта чтоб 5 процентов уходило ему на счет с каждой покупки
+                    if admin_user:
+                        admin_user.balance += five_percent
+                        admin_user.save()
+
+                    for user in User.objects.all():
+                        if user.channel == subscriptions.channel:
+                            user.balance += amount_after_deduction
+                            user.save()
+
                     currency = 'RUB'
                     stripe.api_key = settings.STRIPE_SECRET_KEY
                     payment_intent = stripe.PaymentIntent.create(
@@ -332,6 +370,20 @@ class PaymentCreateView(View):
                     # создаем новую подписку
                     subscriptions = get_object_or_404(Subscriptions, pk=pk)
                     amount = subscriptions.amount_per_month
+
+                    five_percent = amount * 0.05
+                    amount_after_deduction = amount - five_percent
+
+                    admin_user = User.objects.filter(email='lololohka057@gmail.com').first() # нужно вписать почту хозяина сайта чтоб 5 процентов уходило ему на счет с каждой покупки
+                    if admin_user:
+                        admin_user.balance += five_percent
+                        admin_user.save()
+
+                    for user in User.objects.all():
+                        if user.channel == subscriptions.channel:
+                            user.balance += amount_after_deduction
+                            user.save()
+
                     currency = 'RUB'
                     stripe.api_key = settings.STRIPE_SECRET_KEY
                     payment_intent = stripe.PaymentIntent.create(
@@ -354,6 +406,20 @@ class PaymentCreateView(View):
         else:
             subscriptions = get_object_or_404(Subscriptions, pk=pk)
             amount = subscriptions.amount_per_month
+
+            five_percent = amount * 0.05
+            amount_after_deduction = amount - five_percent
+
+            admin_user = User.objects.filter(email='lololohka057@gmail.com').first() # нужно вписать почту хозяина сайта чтоб 5 процентов уходило ему на счет с каждой покупки
+            if admin_user:
+                admin_user.balance += five_percent
+                admin_user.save()
+
+            for user in User.objects.all():
+                if user.channel == subscriptions.channel:
+                    user.balance += amount_after_deduction
+                    user.save()
+
             currency = 'RUB'
             stripe.api_key = settings.STRIPE_SECRET_KEY
             payment_intent = stripe.PaymentIntent.create(
