@@ -1,5 +1,6 @@
 from django.contrib import admin
-from main.models import Payment, Сhannel , Post, Сomments, Subscriptions
+from main.models import Payment, Сhannel, Post, Сomments, Subscriptions
+
 
 @admin.register(Сhannel)
 class СhannelAdmin(admin.ModelAdmin):
@@ -8,7 +9,7 @@ class СhannelAdmin(admin.ModelAdmin):
 
 @admin.register(Post)
 class PostAdmin(admin.ModelAdmin):
-    list_display = ('name', 'photo_post', 'description', 'subscription_level' , 'likes' , 'time_the_comment', 'channel')
+    list_display = ('name', 'photo_post', 'description', 'subscription_level', 'likes', 'time_the_comment', 'channel')
 
 
 @admin.register(Сomments)

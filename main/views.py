@@ -1,21 +1,21 @@
-import datetime
-from typing import Any
 from main.permissions import AuthorCommentPermissionsMixin, AuthorPermissionsMixin, AuthorPostPermissionsMixin, AuthorSubPermissionsMixin
-from project import settings
-from django.shortcuts import get_list_or_404, get_object_or_404, redirect, render
-from django.utils.decorators import method_decorator
-from django.contrib.auth.decorators import login_required
-from django.views import View
 from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView
+from django.shortcuts import get_list_or_404, get_object_or_404, redirect, render
 from main.models import Payment, Post, Subscriptions, Сhannel, Сomments
-from django.http import HttpResponseRedirect, HttpResponseServerError, JsonResponse
+from django.http import HttpResponseRedirect, HttpResponseServerError
+from django.contrib.auth.decorators import login_required
+from django.utils.decorators import method_decorator
+from django.utils import timezone
 from django.urls import reverse
+from django.views import View
+from users.models import User
+from project import settings
+import datetime
 import stripe
 
-from users.models import User
+# ------------------------------------------------------------------------------------
 
 
-#------------------------------------------------------------------------------------
 class MainListView(ListView):
     model = Сhannel
     template_name = 'main/main_page.html'
@@ -37,23 +37,23 @@ class СhannelDetailView(DetailView):
         free_posts = Post.objects.filter(subscription_level__isnull=True, channel=channel)
         payments_channel = Payment.objects.filter(subscriptions__channel=channel).all()
 
-        if user == None:
+        if user is None:
             paid_posts = Post.objects.filter(subscription_level__isnull=False, channel=channel)
             context['free_posts'] = free_posts
             context['paid_posts'] = paid_posts
             context['subscriptions'] = subscriptions
             context['comments'] = comments
             return context
-        
+
         payment = Payment.objects.filter(
             user_nickname=self.request.user.nickname,
             subscriptions__channel=channel
             ).first()
-        
+
         if user.channel:
             if user.channel.name == channel.name:
                 context['all_posts'] = Post.objects.filter(channel=channel)
-        
+
         if payment:
             user_sub = payment.subscriptions
             payments_user = []
@@ -99,17 +99,19 @@ class СhannelCreateView(CreateView):
         self.request.user.save()
 
         return HttpResponseRedirect(reverse('main:detail', args=[self.object.name]))
-    
+
 
 @method_decorator(login_required, name='dispatch')
 class СhannelUpdateView(AuthorPermissionsMixin, UpdateView):
     model = Сhannel
     fields = '__all__'
-    
+
     def get_success_url(self) -> str:
         return reverse('main:detail', args=[self.object.name])
 
-#------------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------------
+
+
 class SubscriptionsListView(ListView):
     model = Subscriptions
 
@@ -135,12 +137,13 @@ class SubscriptionsCreateView(CreateView):
     def get_success_url(self) -> str:
         return reverse('main:detail', args=[self.object.channel.name])
 
+
 @method_decorator(login_required, name='dispatch')
 class SubscriptionsUpdateView(AuthorSubPermissionsMixin, UpdateView):
     fields = '__all__'
     model = Subscriptions
     template_name = 'main/edit_subscriptions.html'
-    
+
     def get_success_url(self) -> str:
         return reverse('main:detail', args=[self.object.channel.name])
 
@@ -153,18 +156,19 @@ class SubscriptionsDetailView(DetailView):
 @method_decorator(login_required, name='dispatch')
 class SubscriptionsDeleteView(AuthorSubPermissionsMixin, DeleteView):
     model = Subscriptions
-    
+
     def get_success_url(self) -> str:
         return reverse('main:detail', args=[self.object.channel.name])
 
-#------------------------------------------------------------------
-from django.utils import timezone
+# ------------------------------------------------------------------
+
+
 @method_decorator(login_required, name='dispatch')
 class PostCreateView(CreateView):
     fields = '__all__'
     model = Post
     template_name = 'main/create_post.html'
-    
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         moscow_time = timezone.now() + datetime.timedelta(hours=3)
@@ -183,7 +187,7 @@ class PostUpdateView(AuthorPostPermissionsMixin, UpdateView):
     fields = '__all__'
     model = Post
     template_name = 'main/edit_post.html'
-    
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         moscow_time = timezone.now() + datetime.timedelta(hours=3)
@@ -200,18 +204,19 @@ class PostUpdateView(AuthorPostPermissionsMixin, UpdateView):
 @method_decorator(login_required, name='dispatch')
 class PostDeleteView(AuthorPostPermissionsMixin, DeleteView):
     model = Post
-    
+
     def get_success_url(self) -> str:
         return reverse('main:detail', args=[self.object.channel.name])
 
-#-----------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------------
+
 
 @method_decorator(login_required, name='dispatch')
 class СommentsCreateView(CreateView):
     fields = '__all__'
     model = Сomments
     template_name = 'main/create_comments.html'
-    
+
     def get_success_url(self) -> str:
         return reverse('main:detail', args=[self.object.post.channel.name])
 
@@ -219,7 +224,7 @@ class СommentsCreateView(CreateView):
         post = get_object_or_404(Post, pk=self.kwargs['post_id'])
         form.instance.post = post
         return super().form_valid(form)
-    
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         post_id = self.kwargs['post_id']
@@ -236,7 +241,7 @@ class СommentsCreateView(CreateView):
 @method_decorator(login_required, name='dispatch')
 class СommentsDeleteView(AuthorCommentPermissionsMixin, DeleteView):
     model = Сomments
-    
+
     def get_success_url(self) -> str:
         return reverse('main:detail', args=[self.object.post.channel.name])
 
@@ -254,15 +259,16 @@ class СommentsUpdateView(AuthorCommentPermissionsMixin, UpdateView):
         context['time'] = moscow_time.time()
         context['date'] = formatted_date
         return context
-    
+
     def get_success_url(self) -> str:
         return reverse('main:detail', args=[self.object.post.channel.name])
 
-#----------------------------------------------------------------------------
+# ----------------------------------------------------------------------------
+
 
 @method_decorator(login_required, name='dispatch')
 class UpdateLikesView(View):
-    template_name = 'main/update_likes.html' 
+    template_name = 'main/update_likes.html'
 
     def post(self, request, post_id, *args, **kwargs):
         post = get_object_or_404(Post, pk=post_id)
@@ -283,7 +289,7 @@ class UpdateLikesView(View):
 
         redirect_url = reverse('main:detail', args=[post.channel.name])
         return render(request, self.template_name, {'redirect_url': redirect_url})
-    
+
 
 @method_decorator(login_required, name='dispatch')
 class PaymentRetrieveView(View):
@@ -310,7 +316,7 @@ class PaymentCreateView(View):
     def post(self, request, pk):
         existing_payment = Payment.objects.filter(user_nickname=request.user.nickname).all()
         subscrip = Subscriptions.objects.get(pk=pk)
-        
+
         if request.user.nickname:
             pass
         else:
@@ -327,7 +333,7 @@ class PaymentCreateView(View):
                     subscriptions_user = item.subscriptions
 
                     if subscrip == subscriptions_user:
-                        return render(request, 'main/error_payment.html', {'subscription':subscrip})
+                        return render(request, 'main/error_payment.html', {'subscription': subscrip})
 
                     item.delete()
 
@@ -336,8 +342,8 @@ class PaymentCreateView(View):
 
                     five_percent = amount * 0.05
                     amount_after_deduction = amount - five_percent
-
-                    admin_user = User.objects.filter(email='lololohka057@gmail.com').first() # нужно вписать почту хозяина сайта чтоб 5 процентов уходило ему на счет с каждой покупки
+                    # нужно вписать почту хозяина сайта чтоб 5 процентов уходило ему на счет с каждой покупки
+                    admin_user = User.objects.filter(email='lololohka057@gmail.com').first()
                     if admin_user:
                         admin_user.balance += five_percent
                         admin_user.save()
@@ -353,7 +359,7 @@ class PaymentCreateView(View):
                         amount=amount * 100,
                         currency=currency,
                         payment_method_types=['card'])
-                        
+
                     payment_intent_id = payment_intent.id
                     payment = Payment(
                         user_nickname=request.user.nickname,
@@ -361,11 +367,11 @@ class PaymentCreateView(View):
                         subscriptions=subscriptions,
                         amount=amount * 100,
                         payment_method='Stripe')
-                        
+
                     payment.save()
                     return redirect('main:retrieve', payment_intent_id=payment_intent_id)
-                        
-                else: 
+
+                else:
                     # Если у пользователя нет подписки на этот канал,
                     # создаем новую подписку
                     subscriptions = get_object_or_404(Subscriptions, pk=pk)
@@ -374,7 +380,7 @@ class PaymentCreateView(View):
                     five_percent = amount * 0.05
                     amount_after_deduction = amount - five_percent
 
-                    admin_user = User.objects.filter(email='lololohka057@gmail.com').first() # нужно вписать почту хозяина сайта чтоб 5 процентов уходило ему на счет с каждой покупки
+                    admin_user = User.objects.filter(email='lololohka057@gmail.com').first()
                     if admin_user:
                         admin_user.balance += five_percent
                         admin_user.save()
@@ -410,7 +416,7 @@ class PaymentCreateView(View):
             five_percent = amount * 0.05
             amount_after_deduction = amount - five_percent
 
-            admin_user = User.objects.filter(email='lololohka057@gmail.com').first() # нужно вписать почту хозяина сайта чтоб 5 процентов уходило ему на счет с каждой покупки
+            admin_user = User.objects.filter(email='lololohka057@gmail.com').first()
             if admin_user:
                 admin_user.balance += five_percent
                 admin_user.save()

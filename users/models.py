@@ -1,13 +1,14 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
 from main.models import Сhannel
+from users.validators import valid_number, valid_number_2
 
 NULLABLE = {'null': True, 'blank': True}
 
 
 class User(AbstractUser):
     username = None
-    phone_number = models.CharField(max_length=13, verbose_name='Номер телефона', unique=True)
+    phone_number = models.CharField(max_length=11, verbose_name='Номер телефона без +', unique=True, validators=[valid_number, valid_number_2])
     email = models.EmailField(unique=True, verbose_name='Почта', **NULLABLE)
     first_name = models.CharField(max_length=150, verbose_name='Имя', **NULLABLE)
     last_name = models.CharField(max_length=150, verbose_name='Фамилия', **NULLABLE)
@@ -20,5 +21,3 @@ class User(AbstractUser):
 
     USERNAME_FIELD = "phone_number"
     REQUIRED_FIELDS = []
-
-    
