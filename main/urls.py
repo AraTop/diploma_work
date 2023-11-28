@@ -21,7 +21,4 @@ urlpatterns = [
    path("update/comments/<int:pk>", views.СommentsUpdateView.as_view(), name='update_comm'),
    path('update-likes/<int:post_id>/', views.UpdateLikesView.as_view(), name='update_likes'),
    path('subscriptions/', views.SubscriptionsListView.as_view(), name='update_likes'),
-
-   path('create_payment/<int:pk>/', views.PaymentCreateView.as_view(), name='create_payment'),
-   path('retrieve_payment/<str:payment_intent_id>/', views.PaymentRetrieveView.as_view(), name='retrieve')
 ]
