@@ -1,10 +1,10 @@
 from django.shortcuts import render
 
 
-class AuthorPermissionsMixin:
+class AuthorSubPermissionsMixin:
     def has_permissions(self):
         obj = self.get_object()
-        return obj == self.request.user.channel
+        return obj.channel == self.request.user.channel
 
     def dispatch(self, request, *args, **kwargs):
         if not self.has_permissions():

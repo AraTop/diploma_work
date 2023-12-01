@@ -1,22 +1,7 @@
 from django.contrib import admin
-from main.models import Сhannel, Post, Сomments, Subscriptions
+from main.models import Сhannel
 
 
 @admin.register(Сhannel)
 class СhannelAdmin(admin.ModelAdmin):
     list_display = ('name', 'description', 'profile_icon')
-
-
-@admin.register(Post)
-class PostAdmin(admin.ModelAdmin):
-    list_display = ('name', 'photo_post', 'description', 'subscription_level', 'likes', 'time_the_comment', 'channel')
-
-
-@admin.register(Сomments)
-class СommentsAdmin(admin.ModelAdmin):
-    list_display = ('user', 'description', 'time_the_comment', 'post')
-
-
-@admin.register(Subscriptions)
-class SubscriptionsAdmin(admin.ModelAdmin):
-    list_display = ('name', 'description', 'strength_of_subscription', 'amount_per_month', 'channel')

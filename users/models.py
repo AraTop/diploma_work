@@ -13,10 +13,10 @@ class User(AbstractUser):
     first_name = models.CharField(max_length=150, verbose_name='Имя', **NULLABLE)
     last_name = models.CharField(max_length=150, verbose_name='Фамилия', **NULLABLE)
     surname = models.CharField(max_length=200, verbose_name='Отчествоо', **NULLABLE)
-    nickname = models.CharField(max_length=10, verbose_name='Имя, которое видно всем', unique=True)
+    nickname = models.CharField(max_length=10, verbose_name='Имя, которое видно всем', unique=True, **NULLABLE)
     balance = models.FloatField(verbose_name='Баланс', **NULLABLE, default=0)
     profile_icon = models.ImageField(upload_to='users/', verbose_name='Фотография профиля', **NULLABLE)
-    description = models.TextField(verbose_name='Описание профиля', default='test', **NULLABLE)
+    description = models.TextField(verbose_name='Описание профиля', **NULLABLE)
     channel = models.ForeignKey(Сhannel, on_delete=models.SET_NULL, **NULLABLE)
 
     USERNAME_FIELD = "phone_number"

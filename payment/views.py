@@ -1,12 +1,11 @@
-from django.shortcuts import render
 from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
 from django.views import View
 from django.http import HttpResponseServerError
 import stripe
+from subscription.models import Subscriptions
 from .models import Payment
 from project import settings
-from main.models import Subscriptions
 from users.models import User
 import datetime
 from django.shortcuts import get_object_or_404, redirect, render
@@ -35,7 +34,7 @@ class PaymentCreateView(View):
     template_name = 'main/create_payment.html'
 
     def post(self, request, pk):
-        existing_payment = Payment.objects.filter(user_nickname=request.user.nickname).all()
+        existing_payment = Payment.objects.filter(user=request.user).all()
         subscrip = Subscriptions.objects.get(pk=pk)
 
         if request.user.nickname:
@@ -83,7 +82,7 @@ class PaymentCreateView(View):
 
                     payment_intent_id = payment_intent.id
                     payment = Payment(
-                        user_nickname=request.user.nickname,
+                        user=request.user,
                         payment_date=datetime.date.today(),
                         subscriptions=subscriptions,
                         amount=amount * 100,
@@ -121,7 +120,7 @@ class PaymentCreateView(View):
 
                     payment_intent_id = payment_intent.id
                     payment = Payment(
-                        user_nickname=request.user.nickname,
+                        user=request.user,
                         payment_date=datetime.date.today(),
                         subscriptions=subscriptions,
                         amount=amount * 100,
@@ -157,7 +156,7 @@ class PaymentCreateView(View):
 
             payment_intent_id = payment_intent.id
             payment = Payment(
-                user_nickname=request.user.nickname,
+                user=request.user,
                 payment_date=datetime.date.today(),
                 subscriptions=subscriptions,
                 amount=amount * 100,

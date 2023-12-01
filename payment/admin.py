@@ -4,4 +4,4 @@ from .models import Payment
 
 @admin.register(Payment)
 class PaymentAdmin(admin.ModelAdmin):
-    list_display = ('user_nickname', 'payment_date', 'subscriptions', 'amount', 'payment_method')
+    list_display = ('user', 'payment_date', 'subscriptions', 'amount', 'payment_method')

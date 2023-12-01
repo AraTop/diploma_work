@@ -1,8 +1,10 @@
 from django.urls import reverse
 from rest_framework.test import APITestCase
 from rest_framework import status
+from main.models import Сhannel
+from post.models import Post, Сomments
+from subscription.models import Subscriptions
 from users.models import User
-from .models import Post, Subscriptions, Сhannel, Сomments
 from rest_framework.test import APIClient
 from django.utils import timezone
 
@@ -86,7 +88,7 @@ class SubscriptionsCRUDTestCase(APITestCase):
             'amount_per_month': 100,
             'channel': channel.pk
         }
-        response = self.client.post(reverse('main:create_sub'), data=new_subscription_data)
+        response = self.client.post(reverse('subscription:create_sub'), data=new_subscription_data)
         self.assertEqual(response.status_code, status.HTTP_302_FOUND)
 
     def test_read_subscription(self):
@@ -104,10 +106,10 @@ class SubscriptionsCRUDTestCase(APITestCase):
             'amount_per_month': 100,
             'channel': channel.pk
         }
-        response = self.client.post(reverse('main:create_sub'), data=new_subscription_data)
+        response = self.client.post(reverse('subscription:create_sub'), data=new_subscription_data)
         subscrip = Subscriptions.objects.get(name='test')
 
-        response = self.client.get(reverse('main:detail_sub', args=[subscrip.pk]))
+        response = self.client.get(reverse('subscription:detail_sub', args=[subscrip.pk]))
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_update_subscription(self):
@@ -125,7 +127,7 @@ class SubscriptionsCRUDTestCase(APITestCase):
             'amount_per_month': 100,
             'channel': channel.pk
         }
-        response = self.client.post(reverse('main:create_sub'), data=new_subscription_data)
+        response = self.client.post(reverse('subscription:create_sub'), data=new_subscription_data)
 
         updated_subscription_data = {
             'name': 'test1',
@@ -135,7 +137,7 @@ class SubscriptionsCRUDTestCase(APITestCase):
             'channel': channel.pk
         }
         subscription = Subscriptions.objects.get(name='test')
-        response = self.client.put(reverse('main:update_sub', args=[subscription.id]), data=updated_subscription_data)
+        response = self.client.put(reverse('subscription:update_sub', args=[subscription.id]), data=updated_subscription_data)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
 
@@ -166,7 +168,7 @@ class PostCRUDTestCase(APITestCase):
             'time_the_comment': timezone.now(),
             'channel': channel.pk
         }
-        response = self.client.post(reverse('main:create_post'), data=new_post_data)
+        response = self.client.post(reverse('post:create_post'), data=new_post_data)
         self.assertEqual(response.status_code, status.HTTP_302_FOUND)
 
     def test_update_post(self):
@@ -182,7 +184,7 @@ class PostCRUDTestCase(APITestCase):
             'time_the_comment': timezone.now(),
             'channel': channel.pk
         }
-        response = self.client.post(reverse('main:create_post'), data=new_post_data)
+        response = self.client.post(reverse('post:create_post'), data=new_post_data)
 
         new_update_post_data = {
             'name': 'test1',
@@ -190,7 +192,7 @@ class PostCRUDTestCase(APITestCase):
             'channel': channel.pk
         }
         post = Post.objects.get(name='test')
-        response = self.client.put(reverse('main:update_post', args=[post.id]), data=new_update_post_data)
+        response = self.client.put(reverse('post:update_post', args=[post.id]), data=new_update_post_data)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
 
@@ -221,7 +223,7 @@ class СommentsCRUDTestCase(APITestCase):
             'time_the_comment': timezone.now(),
             'channel': channel.pk
         }
-        response = self.client.post(reverse('main:create_post'), data=new_post_data)
+        response = self.client.post(reverse('post:create_post'), data=new_post_data)
         post = Post.objects.get(name='test')
 
         new_comments_data = {
@@ -230,7 +232,7 @@ class СommentsCRUDTestCase(APITestCase):
             'time_the_comment': timezone.now(),
             'post': post.pk
         }
-        url = reverse('main:create_comm', kwargs={'post_id': post.id})
+        url = reverse('post:create_comm', kwargs={'post_id': post.id})
         response = self.client.post(url, data=new_comments_data)
         self.assertEqual(response.status_code, status.HTTP_302_FOUND)
 
@@ -247,7 +249,7 @@ class СommentsCRUDTestCase(APITestCase):
             'time_the_comment': timezone.now(),
             'channel': channel.pk
         }
-        response = self.client.post(reverse('main:create_post'), data=new_post_data)
+        response = self.client.post(reverse('post:create_post'), data=new_post_data)
         post = Post.objects.get(name='test')
 
         new_comments_data = {
@@ -256,7 +258,7 @@ class СommentsCRUDTestCase(APITestCase):
             'time_the_comment': timezone.now(),
             'post': post.pk
         }
-        url = reverse('main:create_comm', kwargs={'post_id': post.id})
+        url = reverse('post:create_comm', kwargs={'post_id': post.id})
         response = self.client.post(url, data=new_comments_data)
         comm = Сomments.objects.get(user='test')
 
@@ -266,6 +268,6 @@ class СommentsCRUDTestCase(APITestCase):
             'time_the_comment': timezone.now(),
             'post': post.pk
         }
-        url = reverse('main:update_comm', kwargs={'pk': comm.id})
+        url = reverse('post:update_comm', kwargs={'pk': comm.id})
         response = self.client.post(url, data=new_update_comment_data)
         self.assertEqual(response.status_code, status.HTTP_200_OK)

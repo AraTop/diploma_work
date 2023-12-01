@@ -288,7 +288,7 @@
 
                      {% for item in payment %}
                      {% if item.subscriptions.pk == subscription.pk %}
-                        {% if user.is_authenticated and request.user.nickname == item.user_nickname %}
+                        {% if user.is_authenticated and request.user == item.user %}
                            <h5 class="mm">Вы подписаны</h5>
                         {% else %}
                            <button type="button" class="btn btn-lg btn-success" onclick="window.location.href='/subscriptions/{{ subscription.pk }}'">Подписаться</button>

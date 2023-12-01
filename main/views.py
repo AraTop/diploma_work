@@ -1,15 +1,13 @@
-from main.permissions import AuthorCommentPermissionsMixin, AuthorPermissionsMixin, AuthorPostPermissionsMixin, AuthorSubPermissionsMixin
-from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView
-from django.shortcuts import get_list_or_404, get_object_or_404, render
-from main.models import Post, Subscriptions, Сhannel, Сomments
+from main.permissions import AuthorPermissionsMixin
+from django.views.generic import ListView, DetailView, CreateView, UpdateView
+from django.shortcuts import get_list_or_404
+from main.models import Сhannel
 from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
 from django.http import HttpResponseRedirect
 from payment.models import Payment
-from django.utils import timezone
 from django.urls import reverse
-from django.views import View
-import datetime
+from post.models import Post, Сomments
 
 
 class MainListView(ListView):
@@ -28,55 +26,64 @@ class СhannelDetailView(DetailView):
         context = super().get_context_data(**kwargs)
         channel = self.get_object()
         subscriptions = channel.subscriptions_set.all()
-        comments = get_list_or_404(Сomments, post__channel=channel) if Сomments.objects.filter(post__channel=channel).exists() else None
+        comments = self.get_comments(channel)
         user = self.request.user if self.request.user.is_authenticated else None
-        free_posts = Post.objects.filter(subscription_level__isnull=True, channel=channel)
+        free_posts = self.get_free_posts(channel)
         payments_channel = Payment.objects.filter(subscriptions__channel=channel).all()
 
-        # если пользователь не авторизован то передаем все это
         if user is None:
-            paid_posts = Post.objects.filter(subscription_level__isnull=False, channel=channel)
-            context['free_posts'] = free_posts
-            context['paid_posts'] = paid_posts
-            context['subscriptions'] = subscriptions
-            context['comments'] = comments
+            paid_posts = self.get_paid_posts(channel)
+            context.update({
+                'free_posts': free_posts,
+                'paid_posts': paid_posts,
+                'subscriptions': subscriptions,
+                'comments': comments,
+            })
             return context
 
-        payment = Payment.objects.filter(
-            user_nickname=self.request.user.nickname,
-            subscriptions__channel=channel
-            ).first()
+        if user.channel and user.channel.name == channel.name:
+            context['all_posts'] = Post.objects.filter(channel=channel)
 
-        # если пользователь является автором данного канала то он видет все посты без блюра
-        if user.channel:
-            if user.channel.name == channel.name:
-                context['all_posts'] = Post.objects.filter(channel=channel)
+        payment = Payment.objects.filter(
+            user=self.request.user,
+            subscriptions__channel=channel
+        ).first()
 
         if payment:
-            user_sub = payment.subscriptions
-            payments_user = []
-            payments_user_didnt_check = []
-
-            for item in Post.objects.filter(subscription_level__isnull=False, channel=channel):
-                if user_sub.strength_of_subscription >= item.subscription_level.strength_of_subscription:
-                    payments_user.append(item)
-
-                else:
-                    payments_user_didnt_check.append(item)
-
-            context['payments_user'] = payments_user
-            context['payments_user_not_check'] = payments_user_didnt_check
-
+            payments_user, payments_user_not_check = self.get_user_payments(channel, payment)
+            context.update({
+                'payments_user': payments_user,
+                'payments_user_not_check': payments_user_not_check,
+            })
         else:
-            paid_posts = Post.objects.filter(subscription_level__isnull=False, channel=channel)
+            paid_posts = self.get_paid_posts(channel)
             context['paid_posts'] = paid_posts
 
-        context['payments_channel'] = payments_channel
-        context['payment'] = Payment.objects.filter(user_nickname=self.request.user.nickname, subscriptions__channel=channel)
-        context['free_posts'] = free_posts
-        context['subscriptions'] = subscriptions
-        context['comments'] = comments
+        context.update({
+            'payments_channel': payments_channel,
+            'payment': Payment.objects.filter(user=self.request.user, subscriptions__channel=channel),
+            'free_posts': free_posts,
+            'subscriptions': subscriptions,
+            'comments': comments,
+        })
         return context
+
+    def get_comments(self, channel):
+        return get_list_or_404(Сomments, post__channel=channel) if Сomments.objects.filter(post__channel=channel).exists() else None
+
+    def get_free_posts(self, channel):
+        return Post.objects.filter(subscription_level__isnull=True, channel=channel)
+
+    def get_paid_posts(self, channel):
+        return Post.objects.filter(subscription_level__isnull=False, channel=channel)
+
+    def get_user_payments(self, channel, payment):
+        user_sub = payment.subscriptions
+        payments_user = [item for item in Post.objects.filter(subscription_level__isnull=False, channel=channel)
+                         if user_sub.strength_of_subscription >= item.subscription_level.strength_of_subscription]
+        payments_user_not_check = [item for item in Post.objects.filter(subscription_level__isnull=False, channel=channel)
+                                   if user_sub.strength_of_subscription < item.subscription_level.strength_of_subscription]
+        return payments_user, payments_user_not_check
 
 
 @method_decorator(login_required, name='dispatch')
@@ -106,184 +113,3 @@ class СhannelUpdateView(AuthorPermissionsMixin, UpdateView):
 
     def get_success_url(self) -> str:
         return reverse('main:detail', args=[self.object.name])
-
-# ------------------------------------------------------------------------------------
-
-
-class SubscriptionsListView(ListView):
-    model = Subscriptions
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-
-        sub_user = []
-        payments = Payment.objects.filter(user_nickname=self.request.user.nickname).all()
-        for item in payments:
-            sub = item.subscriptions
-            sub_user.append(sub)
-
-        context['sub_user'] = sub_user
-        return context
-
-
-@method_decorator(login_required, name='dispatch')
-class SubscriptionsCreateView(CreateView):
-    fields = '__all__'
-    model = Subscriptions
-    template_name = 'main/create_subscriptions.html'
-
-    def get_success_url(self) -> str:
-        return reverse('main:detail', args=[self.object.channel.name])
-
-
-@method_decorator(login_required, name='dispatch')
-class SubscriptionsUpdateView(AuthorSubPermissionsMixin, UpdateView):
-    fields = '__all__'
-    model = Subscriptions
-    template_name = 'main/edit_subscriptions.html'
-
-    def get_success_url(self) -> str:
-        return reverse('main:detail', args=[self.object.channel.name])
-
-
-@method_decorator(login_required, name='dispatch')
-class SubscriptionsDetailView(DetailView):
-    model = Subscriptions
-
-
-@method_decorator(login_required, name='dispatch')
-class SubscriptionsDeleteView(AuthorSubPermissionsMixin, DeleteView):
-    model = Subscriptions
-
-    def get_success_url(self) -> str:
-        return reverse('main:detail', args=[self.object.channel.name])
-
-# ------------------------------------------------------------------
-
-
-@method_decorator(login_required, name='dispatch')
-class PostCreateView(CreateView):
-    fields = '__all__'
-    model = Post
-    template_name = 'main/create_post.html'
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        moscow_time = timezone.now() + datetime.timedelta(hours=3)
-        current_date = timezone.now().date()
-        formatted_date = current_date.strftime('%Y-%m-%d')
-        context['time'] = moscow_time.time()
-        context['date'] = formatted_date
-        return context
-
-    def get_success_url(self) -> str:
-        return reverse('main:detail', args=[self.object.channel.name])
-
-
-@method_decorator(login_required, name='dispatch')
-class PostUpdateView(AuthorPostPermissionsMixin, UpdateView):
-    fields = '__all__'
-    model = Post
-    template_name = 'main/edit_post.html'
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        moscow_time = timezone.now() + datetime.timedelta(hours=3)
-        current_date = timezone.now().date()
-        formatted_date = current_date.strftime('%Y-%m-%d')
-        context['time'] = moscow_time.time()
-        context['date'] = formatted_date
-        return context
-
-    def get_success_url(self) -> str:
-        return reverse('main:detail', args=[self.object.channel.name])
-
-
-@method_decorator(login_required, name='dispatch')
-class PostDeleteView(AuthorPostPermissionsMixin, DeleteView):
-    model = Post
-
-    def get_success_url(self) -> str:
-        return reverse('main:detail', args=[self.object.channel.name])
-
-# -----------------------------------------------------------------------------------
-
-
-@method_decorator(login_required, name='dispatch')
-class СommentsCreateView(CreateView):
-    fields = '__all__'
-    model = Сomments
-    template_name = 'main/create_comments.html'
-
-    def get_success_url(self) -> str:
-        return reverse('main:detail', args=[self.object.post.channel.name])
-
-    def form_valid(self, form):
-        post = get_object_or_404(Post, pk=self.kwargs['post_id'])
-        form.instance.post = post
-        return super().form_valid(form)
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        post_id = self.kwargs['post_id']
-        post = get_object_or_404(Post, pk=post_id)
-        context['post_my'] = post
-        moscow_time = timezone.now() + datetime.timedelta(hours=3)
-        current_date = timezone.now().date()
-        formatted_date = current_date.strftime('%Y-%m-%d')
-        context['time'] = moscow_time.time()
-        context['date'] = formatted_date
-        return context
-
-
-@method_decorator(login_required, name='dispatch')
-class СommentsDeleteView(AuthorCommentPermissionsMixin, DeleteView):
-    model = Сomments
-
-    def get_success_url(self) -> str:
-        return reverse('main:detail', args=[self.object.post.channel.name])
-
-
-@method_decorator(login_required, name='dispatch')
-class СommentsUpdateView(AuthorCommentPermissionsMixin, UpdateView):
-    model = Сomments
-    fields = '__all__'
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        moscow_time = timezone.now() + datetime.timedelta(hours=3)
-        current_date = timezone.now().date()
-        formatted_date = current_date.strftime('%Y-%m-%d')
-        context['time'] = moscow_time.time()
-        context['date'] = formatted_date
-        return context
-
-    def get_success_url(self) -> str:
-        return reverse('main:detail', args=[self.object.post.channel.name])
-
-# ----------------------------------------------------------------------------
-
-
-@method_decorator(login_required, name='dispatch')
-class UpdateLikesView(View):
-    template_name = 'main/update_likes.html'
-
-    def post(self, request, post_id, *args, **kwargs):
-        post = get_object_or_404(Post, pk=post_id)
-
-        user_likes_key = f"user_likes_{post_id}"
-        user_likes = request.session.get(user_likes_key, 0)
-
-        if user_likes == 0:
-            post.likes += 1
-            post.save()
-
-            request.session[user_likes_key] = 1
-        else:
-            post.likes -= 1
-            post.save()
-
-            request.session[user_likes_key] = 0
-
-        redirect_url = reverse('main:detail', args=[post.channel.name])
-        return render(request, self.template_name, {'redirect_url': redirect_url})
