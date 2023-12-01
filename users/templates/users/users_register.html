@@ -39,6 +39,18 @@
           </ul>
         {% endif %}
       </div>
+      <div class="form-group">
+        {{ form.email.label_tag }}
+        <br>
+        {{ form.email }}
+        {% if form.email.errors %}
+          <ul class="errorlist">
+            {% for error in form.email.errors %}
+              <li class="red">{{ error }}</li>
+            {% endfor %}
+          </ul>
+        {% endif %}
+      </div>
       <h7>Пароль не должен быть слишком похож на другую вашу личную информацию.</h7>
       <h7>Ваш пароль должен содержать как минимум 8 символов.</h7>
       <h7>Пароль не должен быть слишком простым и распространенным.</h7>
